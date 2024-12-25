@@ -11,4 +11,10 @@
     <ProjectReference Include="..\BeatSpiderSharp.Core\BeatSpiderSharp.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="SongDetailsCache">
+      <HintPath>..\Refs\SongDetailsCache\SongDetailsCache.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

@@ -2,6 +2,7 @@
 using System.Text.Json;
 using BeatSpiderSharp.Core.Models;
 using Serilog;
+using SongDetailsCache;
 
 namespace BeatSpiderSharp.Core;
 
@@ -12,6 +13,8 @@ public abstract class BeatSpider
         WriteIndented = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
+    
+    protected SongDetails SongDetails { get; private set; } = null!;
 
     protected BeatSpider()
     {
@@ -27,6 +30,13 @@ public abstract class BeatSpider
 
     protected virtual void ConfigureLogger(LoggerConfiguration configuration)
     {
+    }
+    
+    protected virtual async Task InitAsync()
+    {
+        Log.Information("BeatSpider initializing");
+        SongDetails = await SongDetails.Init();
+        Log.Debug("SongDetails initialized");
     }
 
     public LegacyPreset? LoadLegacyPreset(string path)

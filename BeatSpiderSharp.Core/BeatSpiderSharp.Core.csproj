@@ -9,10 +9,17 @@
   <ItemGroup>
     <PackageReference Include="BeatSaberPlaylistsLib" Version="1.6.6" />
     <PackageReference Include="BeatSaverSharper" Version="3.4.5" />
+    <PackageReference Include="protobuf-net" Version="3.2.45" />
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SongDetailsCache">
+      <HintPath>..\Refs\SongDetailsCache\SongDetailsCache.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
