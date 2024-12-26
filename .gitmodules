@@ -1,0 +1,4 @@
+[submodule "SongDetailsCache"]
+	path = Refs/SongDetailsCache
+	url = git@github.com:qe201020335/BeatSaber_SongDetails.git
+	branch = dll_update

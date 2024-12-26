@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSpiderSharp.Core", "Bea
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSpiderSharp.CLI", "BeatSpiderSharp.CLI\BeatSpiderSharp.CLI.csproj", "{9009CD19-9653-4EE1-A0F3-CED63B6B4AF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SongDetailsCache", "Refs\SongDetailsCache\SongDetailsCache.csproj", "{38CD1749-CDE6-4245-B996-0E9E359C059C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,6 +24,10 @@ Global
 		{9009CD19-9653-4EE1-A0F3-CED63B6B4AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9009CD19-9653-4EE1-A0F3-CED63B6B4AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9009CD19-9653-4EE1-A0F3-CED63B6B4AF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38CD1749-CDE6-4245-B996-0E9E359C059C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38CD1749-CDE6-4245-B996-0E9E359C059C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38CD1749-CDE6-4245-B996-0E9E359C059C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38CD1749-CDE6-4245-B996-0E9E359C059C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
