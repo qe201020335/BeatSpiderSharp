@@ -14,6 +14,8 @@ public class LegacyFilter : ISongFilter
     private readonly LegacyPreset.SongFilterSetting _detailFilter;
     public bool LogExclusions { get; set; } = false;
     
+    public bool LogInclusions { get; set; } = false;
+    
     public LegacyFilter(LegacyPreset preset)
     {
         _preset = preset;
@@ -335,7 +337,7 @@ public class LegacyFilter : ISongFilter
         
         // TODO SongDetails doesn't have MaxScore
         
-        Log.Information("Song {Bsr} included", song.Bsr);
+        if (LogInclusions) Log.Debug("Song {Bsr} included", song.Bsr);
         return true;
     }
     

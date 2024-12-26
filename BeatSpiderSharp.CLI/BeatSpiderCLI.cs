@@ -21,7 +21,7 @@ public class BeatSpiderCLI : BeatSpider
     public async Task Run(string[] args)
     {
         Log.Information("BeatSpiderCLI!");
-        
+
         if (args.Length == 0)
         {
             Log.Error("No arguments provided");
@@ -41,7 +41,7 @@ public class BeatSpiderCLI : BeatSpider
         Log.Information("Song source: {Source}", preset.SongSource);
 
         var songSource = new SongDetailsSongs(SongDetails) { ReverseOrder = true };
-        var presetFilter = new LegacyFilter(preset) { LogExclusions = true };
+        var presetFilter = new LegacyFilter(preset) { LogExclusions = false, LogInclusions = true };
 
         var allSongs = songSource.GetSongs();
         var filteredSongs = presetFilter.Filter(allSongs);
