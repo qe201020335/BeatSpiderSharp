@@ -45,6 +45,7 @@ public abstract class BeatSpider
 
     public LegacyPreset? LoadLegacyPreset(string path)
     {
+        Log.Information("Loading legacy preset from {Path}", path);
         if (!File.Exists(path))
         {
             Log.Error("File {Path} does not exist", path);
@@ -58,6 +59,7 @@ public abstract class BeatSpider
 
     public void WriteLegacyPreset(LegacyPreset preset, string path)
     {
+        Log.Information("Writing legacy preset to {Path}", path);
         using var outputStream = new FileStream(path, FileMode.Create);
         JsonSerializer.Serialize(outputStream, preset, JsonOptions);
     }

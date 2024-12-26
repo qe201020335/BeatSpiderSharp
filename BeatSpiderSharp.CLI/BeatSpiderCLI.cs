@@ -14,6 +14,7 @@ public class BeatSpiderCLI : BeatSpider
         base.ConfigureLogger(configuration);
         configuration
             .MinimumLevel.Debug()
+            .WriteTo.File("BeatSpiderCLI.log", rollingInterval: RollingInterval.Day)
             .WriteTo.Console();
     }
 
@@ -39,15 +40,12 @@ public class BeatSpiderCLI : BeatSpider
 
         Log.Information("Song source: {Source}", preset.SongSource);
 
-        Log.Information("Loading SongDetails");
-        var songDetails = await SongDetails.Init();
+        var songSource = new SongDetailsSongs(SongDetails) { ReverseOrder = true };
+        var presetFilter = new LegacyFilter(preset) { LogExclusions = true };
 
-        var songSource = new SongDetailsSongs(songDetails);
-        var presetFilter = new LegacyFilter(preset);
-        
         var allSongs = songSource.GetSongs();
         var filteredSongs = presetFilter.Filter(allSongs);
-        
+
         Log.Information("Filtered songs: {Count}", filteredSongs.Count());
 
         // WriteLegacyPreset(preset, "./output.json");
