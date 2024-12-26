@@ -445,6 +445,12 @@ public class LegacyPreset
             [JsonPropertyName("内容")]
             [JsonConverter(typeof(EnumArrayConverter<Difficulty>))]
             public IList<Difficulty> Difficulties { get; set; } = new List<Difficulty>();
+            
+            [JsonPropertyName("与")]
+            public bool And { get; set; }
+
+            [JsonPropertyName("或")]
+            public bool Or { get; set; }
 
             //Easy,Normal,Hard,Expert,ExpertPlus
             public enum Difficulty

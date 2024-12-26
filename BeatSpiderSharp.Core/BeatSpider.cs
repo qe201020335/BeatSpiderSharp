@@ -1,5 +1,6 @@
 ﻿using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using BeatSpiderSharp.Core.Models;
 using Serilog;
 using SongDetailsCache;
@@ -11,7 +12,10 @@ public abstract class BeatSpider
     protected readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
     {
         WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+#if DEBUG
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+#endif
     };
     
     protected SongDetails SongDetails { get; private set; } = null!;
@@ -49,7 +53,7 @@ public abstract class BeatSpider
 
         using var stream = File.OpenRead(path);
 
-        return JsonSerializer.Deserialize<LegacyPreset>(stream);
+        return JsonSerializer.Deserialize<LegacyPreset>(stream, JsonOptions);
     }
 
     public void WriteLegacyPreset(LegacyPreset preset, string path)
