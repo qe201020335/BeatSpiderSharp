@@ -625,7 +625,7 @@ public class LegacyPreset
             return new ModRequirements
             {
                 NoodleExtensions = set.Contains("ne"),
-                Chroma = set.Contains("me"),
+                Chroma = set.Contains("chroma"),
                 MappingExtensions = set.Contains("me"),
                 Cinema = set.Contains("cinema"),
             };
