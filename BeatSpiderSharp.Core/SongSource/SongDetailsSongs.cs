@@ -9,10 +9,13 @@ namespace BeatSpiderSharp.Core.SongSource;
 public class SongDetailsSongs(SongDetails songDetails) : ISongSource
 {
     protected SongDetails SongDetails => songDetails;
+    public bool ReverseOrder { get; init; }
 
     public IEnumerable<BeatSpiderSong> GetSongs()
     {
-        return GetSongDetailSongs().Select(BeatSpiderSong.FromSongDetailsSong);
+        return ReverseOrder 
+            ? GetSongDetailSongs().Reverse().Select(BeatSpiderSong.FromSongDetailsSong)
+            : GetSongDetailSongs().Select(BeatSpiderSong.FromSongDetailsSong);
     }
 
     protected virtual IEnumerable<Song> GetSongDetailSongs()

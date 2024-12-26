@@ -12,6 +12,6 @@ class Program
         
         var beatSpider = new BeatSpiderCLI();
 
-        await beatSpider.Run();
+        await beatSpider.Run(args);
     }
 }

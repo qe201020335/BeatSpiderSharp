@@ -329,10 +329,10 @@ public class LegacyPreset
         public MinMaxIntSetting Duration { get; set; } = new();
 
         [JsonPropertyName("谱面时长")]
-        public MinMaxFloatSetting Length { get; set; } = new();
+        public MinMaxFloatSetting MapSeconds { get; set; } = new();
 
         [JsonPropertyName("节拍数量")]
-        public MinMaxFloatSetting Beats { get; set; } = new();
+        public MinMaxFloatSetting MapLength { get; set; } = new();
 
         [JsonPropertyName("飞行速度")]
         public MinMaxFloatSetting Njs { get; set; } = new();
@@ -574,6 +574,11 @@ public class LegacyPreset
         [JsonPropertyName("max")]
         [JsonConverter(typeof(StringIntConverter))]
         public int? Max { get; set; }
+        
+        public bool InRange(int value)
+        {
+            return (!Min.HasValue || value >= Min.Value) && (!Max.HasValue || value <= Max.Value);
+        }
     }
 
     public class MinMaxFloatSetting : DisablableSetting
@@ -585,6 +590,11 @@ public class LegacyPreset
         [JsonPropertyName("max")]
         [JsonConverter(typeof(StringFloatConverter))]
         public float? Max { get; set; }
+        
+        public bool InRange(float value)
+        {
+            return (!Min.HasValue || value >= Min.Value) && (!Max.HasValue || value <= Max.Value);
+        }
     }
 
     public class MinMaxTimeSetting : DisablableSetting
@@ -596,6 +606,11 @@ public class LegacyPreset
         [JsonPropertyName("max")]
         [JsonConverter(typeof(StringTimestampConverter))]
         public DateTimeOffset? Max { get; set; }
+        
+        public bool InRange(DateTimeOffset value)
+        {
+            return (!Min.HasValue || value >= Min.Value) && (!Max.HasValue || value <= Max.Value);
+        }
     }
 
     // Original project's settings is weird (but consistent with BeatSaver's API)
