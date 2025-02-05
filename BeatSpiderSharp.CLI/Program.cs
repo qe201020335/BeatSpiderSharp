@@ -1,17 +1,12 @@
-﻿using System.Text.Encodings.Web;
-using System.Text.Json;
-using BeatSpiderSharp.Core.Models;
+﻿using System.CommandLine.Parsing;
+using BeatSpiderSharp.CLI.Command;
 
 namespace BeatSpiderSharp.CLI;
 
-class Program
+public static class Program
 {
-    static async Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
-        Console.WriteLine("Hello, World!");
-        
-        var beatSpider = new BeatSpiderCLI();
-
-        await beatSpider.Run(args);
+        await CommandParser.ParseCommandForHandler(args, new BeatSpiderCLI().Run).InvokeAsync();
     }
 }

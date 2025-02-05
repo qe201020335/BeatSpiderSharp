@@ -1,4 +1,5 @@
-﻿using BeatSpiderSharp.Core;
+﻿using BeatSpiderSharp.CLI.Command;
+using BeatSpiderSharp.Core;
 using BeatSpiderSharp.Core.Filters;
 using BeatSpiderSharp.Core.Interfaces;
 using BeatSpiderSharp.Core.SongSource;
@@ -13,24 +14,21 @@ public class BeatSpiderCLI : BeatSpider
     {
         base.ConfigureLogger(configuration);
         configuration
+#if DEBUG
             .MinimumLevel.Debug()
+#endif
             .WriteTo.File("BeatSpiderCLI.log", rollingInterval: RollingInterval.Day)
             .WriteTo.Console();
     }
 
-    public async Task Run(string[] args)
+    public async Task Run(Options options)
     {
         Log.Information("BeatSpiderCLI!");
-
-        if (args.Length == 0)
-        {
-            Log.Error("No arguments provided");
-            return;
-        }
+        Log.Debug("Options: {@Options}", options);
 
         await InitAsync();
 
-        var preset = LoadLegacyPreset(args[0]);
+        var preset = LoadLegacyPreset(options.InputPreset);
 
         if (preset == null)
         {
@@ -41,7 +39,7 @@ public class BeatSpiderCLI : BeatSpider
         Log.Information("Song source: {Source}", preset.SongSource);
 
         var songSource = new SongDetailsSongs(SongDetails) { ReverseOrder = true };
-        var presetFilter = new LegacyFilter(preset) { LogExclusions = false, LogInclusions = true };
+        var presetFilter = new LegacyFilter(preset) { LogExclusions = false, LogInclusions = options.Verbose };
 
         var allSongs = songSource.GetSongs();
         var filteredSongs = presetFilter.Filter(allSongs);
