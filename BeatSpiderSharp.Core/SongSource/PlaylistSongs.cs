@@ -17,6 +17,7 @@ public class PlaylistSongs : SongDetailsSongs
 
     public PlaylistSongs(string playlistPath, SongDetails songDetails) : base(songDetails)
     {
+        Log.Debug("Loading playlist: {PlaylistPath}", playlistPath);
         if (!File.Exists(playlistPath))
         {
             Log.Warning("Playlist file not found: {PlaylistPath}", playlistPath);
