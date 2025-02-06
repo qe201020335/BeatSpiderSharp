@@ -1,10 +1,9 @@
 ﻿using BeatSpiderSharp.CLI.Command;
 using BeatSpiderSharp.Core;
 using BeatSpiderSharp.Core.Filters;
-using BeatSpiderSharp.Core.Interfaces;
+using BeatSpiderSharp.Core.Models;
 using BeatSpiderSharp.Core.SongSource;
 using Serilog;
-using SongDetailsCache;
 
 namespace BeatSpiderSharp.CLI;
 
@@ -38,7 +37,12 @@ public class BeatSpiderCLI : BeatSpider
 
         Log.Information("Song source: {Source}", preset.SongSource);
 
-        var songSource = new SongDetailsSongs(SongDetails) { ReverseOrder = true };
+        var songSource = preset.SongSource switch
+        {
+            LegacyPreset.DataSource.Playlist => new PlaylistSongs(preset.PlaylistInput.Path, SongDetails),
+            LegacyPreset.DataSource.ManualInput => new ManualSongInput(preset.ManualSongInput.Songs, SongDetails),
+            _ => new SongDetailsSongs(SongDetails) { ReverseOrder = true }
+        };
         var presetFilter = new LegacyFilter(preset) { LogExclusions = false, LogInclusions = options.Verbose };
 
         var allSongs = songSource.GetSongs();
