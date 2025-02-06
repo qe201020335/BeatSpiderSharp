@@ -1,7 +1,6 @@
-﻿using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text;
 using BeatSpiderSharp.Core.Models;
+using Newtonsoft.Json;
 using Serilog;
 using SongDetailsCache;
 
@@ -9,14 +8,13 @@ namespace BeatSpiderSharp.Core;
 
 public abstract class BeatSpider
 {
-    protected readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
+    protected readonly JsonSerializer LegacySerializer = JsonSerializer.Create(new JsonSerializerSettings
     {
-        WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        Formatting = Formatting.Indented,
 #if DEBUG
-        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        MissingMemberHandling = MissingMemberHandling.Error
 #endif
-    };
+    });
     
     protected SongDetails SongDetails { get; private set; } = null!;
 
@@ -53,14 +51,17 @@ public abstract class BeatSpider
         }
 
         using var stream = File.OpenRead(path);
-
-        return JsonSerializer.Deserialize<LegacyPreset>(stream, JsonOptions);
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        using var jsonReader = new JsonTextReader(reader);
+        return LegacySerializer.Deserialize<LegacyPreset>(jsonReader);
     }
 
     public void WriteLegacyPreset(LegacyPreset preset, string path)
     {
         Log.Information("Writing legacy preset to {Path}", path);
         using var outputStream = new FileStream(path, FileMode.Create);
-        JsonSerializer.Serialize(outputStream, preset, JsonOptions);
+        using var textWriter = new StreamWriter(outputStream, Encoding.UTF8);
+        using var jsonWriter = new JsonTextWriter(textWriter);
+        LegacySerializer.Serialize(jsonWriter, preset);
     }
 }
