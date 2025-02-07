@@ -20,7 +20,7 @@ public class BeatSpiderCLI : BeatSpider
             .WriteTo.Console();
     }
 
-    public async Task Run(Options options)
+    public async Task<int> Run(Options options)
     {
         Log.Information("BeatSpiderCLI!");
         Log.Debug("Options: {@Options}", options);
@@ -32,7 +32,7 @@ public class BeatSpiderCLI : BeatSpider
         if (preset == null)
         {
             Log.Warning("Failed to load preset");
-            return;
+            return 1;
         }
 
         Log.Information("Song source: {Source}", preset.SongSource);
@@ -51,5 +51,6 @@ public class BeatSpiderCLI : BeatSpider
         Log.Information("Filtered songs: {Count}", filteredSongs.Count());
 
         // WriteLegacyPreset(preset, "./output.json");
+        return 0;
     }
 }
