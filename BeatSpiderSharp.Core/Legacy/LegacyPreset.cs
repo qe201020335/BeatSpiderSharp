@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using Newtonsoft.Json;
 
-namespace BeatSpiderSharp.Core.Models;
+namespace BeatSpiderSharp.Core.Legacy;
 
 /// <summary>
 /// The preset model for BeatSpider, aka a .brset preset file.

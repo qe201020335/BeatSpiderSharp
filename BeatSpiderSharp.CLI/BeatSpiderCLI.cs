@@ -1,6 +1,6 @@
 ﻿using BeatSpiderSharp.CLI.Command;
 using BeatSpiderSharp.Core;
-using BeatSpiderSharp.Core.Filters;
+using BeatSpiderSharp.Core.Legacy;
 using BeatSpiderSharp.Core.Models;
 using BeatSpiderSharp.Core.SongSource;
 using Serilog;
@@ -27,7 +27,7 @@ public class BeatSpiderCLI : BeatSpider
 
         await InitAsync();
 
-        var preset = LoadLegacyPreset(options.InputPreset);
+        var preset = LegacyPresetLoader.LoadLegacyPreset(options.InputPreset);
 
         if (preset == null)
         {
@@ -50,7 +50,7 @@ public class BeatSpiderCLI : BeatSpider
 
         Log.Information("Filtered songs: {Count}", filteredSongs.Count());
 
-        // WriteLegacyPreset(preset, "./output.json");
+        // LegacyPresetLoader.SaveLegacyPreset(preset, "./output.json");
         return 0;
     }
 }

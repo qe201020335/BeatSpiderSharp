@@ -1,7 +1,6 @@
-﻿using BeatSpiderSharp.Core.Models;
-using SongDetailsCache.Structs;
+﻿using SongDetailsCache.Structs;
 
-namespace BeatSpiderSharp.Core.Utilities.Extensions;
+namespace BeatSpiderSharp.Core.Legacy;
 
 public static class LegacyExtensions
 {

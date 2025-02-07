@@ -1,11 +1,9 @@
 ﻿using BeatSpiderSharp.Core.Interfaces;
 using BeatSpiderSharp.Core.Models;
-using BeatSpiderSharp.Core.SongSource;
-using BeatSpiderSharp.Core.Utilities.Extensions;
 using Serilog;
 using SongDetailsCache.Structs;
 
-namespace BeatSpiderSharp.Core.Filters;
+namespace BeatSpiderSharp.Core.Legacy;
 
 public class LegacyFilter : ISongFilter
 {
