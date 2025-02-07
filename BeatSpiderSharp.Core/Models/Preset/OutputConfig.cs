@@ -2,21 +2,23 @@
 
 public class OutputConfig
 {
-    public int MaxSongs { get; set; } = 0;
+    public bool LimitSongs { get; set; }
 
-    public bool SavePlaylist { get; set; } = false;
+    public int? MaxSongs { get; set; }
+
+    public bool SavePlaylist { get; set; }
 
     public string PlaylistPath { get; set; } = string.Empty;
 
-    public bool DownloadSongs { get; set; } = false;
+    public bool DownloadSongs { get; set; }
 
     public string DownloadPath { get; set; } = string.Empty;
 
-    public bool SkipExisting { get; set; } = false;
+    public bool SkipExisting { get; set; }
 
     public IList<string> ExistingSongPaths { get; set; } = new List<string>();
     
-    public bool CopyLocalSongs { get; set; } = false;
+    public bool CopyLocalSongs { get; set; }
     
     public IList<string> LocalSongPaths { get; set; } = new List<string>();
 }

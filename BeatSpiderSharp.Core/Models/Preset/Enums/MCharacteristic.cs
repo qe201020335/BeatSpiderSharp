@@ -1,6 +1,6 @@
 ﻿namespace BeatSpiderSharp.Core.Models.Preset.Enums;
 
-public enum MCharacteristics
+public enum MCharacteristic
 {
     Standard,
     OneSaber,
@@ -8,5 +8,6 @@ public enum MCharacteristics
     NinetyDegree,
     ThreeSixtyDegree,
     Lightshow,
-    Lawless
+    Lawless,
+    Other
 }
