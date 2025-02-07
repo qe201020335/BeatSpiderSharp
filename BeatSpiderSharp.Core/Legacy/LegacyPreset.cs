@@ -155,7 +155,7 @@ public class LegacyPreset
         [JsonProperty("难度")]
         public MinMaxFloat StarDifficulty { get; set; } = new();
 
-        public class MinMaxFloat
+        public class MinMaxFloat: IMinMaxSetting<float>
         {
             [JsonProperty("min")]
             [JsonConverter(typeof(StringFloatConverter))]
@@ -561,7 +561,13 @@ public class LegacyPreset
         public int? Content { get; set; }
     }
 
-    public class MinMaxIntSetting : DisablableSetting
+    public interface IMinMaxSetting<T> where T: struct, IComparable<T>
+    {
+        T? Min { get; set; }
+        T? Max { get; set; }
+    }
+
+    public class MinMaxIntSetting : DisablableSetting, IMinMaxSetting<int>
     {
         [JsonProperty("min")]
         [JsonConverter(typeof(StringIntConverter))]
@@ -577,7 +583,7 @@ public class LegacyPreset
         }
     }
 
-    public class MinMaxFloatSetting : DisablableSetting
+    public class MinMaxFloatSetting : DisablableSetting, IMinMaxSetting<float>
     {
         [JsonProperty("min")]
         [JsonConverter(typeof(StringFloatConverter))]
@@ -593,7 +599,7 @@ public class LegacyPreset
         }
     }
 
-    public class MinMaxTimeSetting : DisablableSetting
+    public class MinMaxTimeSetting : DisablableSetting, IMinMaxSetting<DateTimeOffset>
     {
         [JsonProperty("min")]
         [JsonConverter(typeof(StringTimestampConverter))]
