@@ -56,7 +56,7 @@ public static class LegacyPresetLoader
             Playlists = [legacyPreset.PlaylistInput.Path],
             ManualInput = legacyPreset.ManualSongInput.Songs.ToList()
         };
-        Log.Information("Legacy preset input source: {Source}", legacyPreset.SongSource);
+        Log.Debug("Legacy preset input source: {Source}", legacyPreset.SongSource);
         switch (legacyPreset.SongSource)
         {
             case LegacyPreset.DataSource.LocalCache:
@@ -102,6 +102,10 @@ public static class LegacyPresetLoader
             Filters = [options]
         };
 
+#if DEBUG
+        Log.Debug("Legacy preset: {@LegacyPreset}", legacyPreset);
+        Log.Debug("Converted preset: {@NewPreset}", preset);
+#endif
         return preset;
     }
     

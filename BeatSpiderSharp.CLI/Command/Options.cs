@@ -12,5 +12,11 @@ public record Options
     
     public bool DisableSongDownload { get; init; }
     
+    public bool InputIsLegacy { get; init; }
+
+    public string? SaveConvertedPresetPath { get; init; }
+    
+    public bool ConvertPresetAndExit { get; init; }
+    
     public bool Verbose { get; init; }
 }

@@ -11,64 +11,104 @@ namespace BeatSpiderSharp.Core.SongSource;
 
 public class PlaylistSongs : SongDetailsSongs
 {
-    private readonly IPlaylist? _playlist;
+    private readonly IList<string> _keys;
 
-    private readonly DirectoryInfo _playlistFolder = new(Path.GetFullPath("TemporaryPlaylists"));
+    private readonly DirectoryInfo _playlistFolder =
+        new(Path.Combine(Path.GetTempPath(), "BeatSpider", "playlists_" + Path.GetRandomFileName()));
 
-    public PlaylistSongs(string playlistPath, SongDetails songDetails) : base(songDetails)
+    public PlaylistSongs(IList<string> playlistPaths, SongDetails songDetails) : base(songDetails)
     {
-        Log.Debug("Loading playlist: {PlaylistPath}", playlistPath);
-        if (!File.Exists(playlistPath))
+        if (playlistPaths.Count == 0)
         {
-            Log.Warning("Playlist file not found: {PlaylistPath}", playlistPath);
+            Log.Warning("No playlist paths given");
+            _keys = [];
+            return;
         }
 
-        // We can't use the given playlistPath's folder directly,
-        // because PlaylistManager will recursively create child managers for all the subfolders
         _playlistFolder.Create();
-        var playlistName = Path.GetFileName(playlistPath);
-        File.Copy(playlistPath, Path.Combine(_playlistFolder.FullName, playlistName), true);
+        var pm = new PlaylistManager(_playlistFolder.FullName, new LegacyPlaylistHandler(), new BlistPlaylistHandler());
 
-        // TODO Inject a PlaylistManager instance for "temp" playlist loading
-        // TODO Use a manager for temp files instead of hardcoding the folder
-        var playlistManager = new PlaylistManager(_playlistFolder.FullName, new LegacyPlaylistHandler(), new BlistPlaylistHandler());
-
-        try
+        var playlists = new List<IPlaylist>(playlistPaths.Count);
+        var songCount = 0;
+        foreach (var path in playlistPaths)
         {
-            _playlist = playlistManager.GetPlaylist(playlistName, false);
+            Log.Debug("Loading playlist: {PlaylistPath}", path);
+            if (!File.Exists(path))
+            {
+                Log.Warning("Playlist file not found: {PlaylistPath}", path);
+                continue;
+            }
+
+            var playlistName = Path.GetFileName(path);
+            try
+            {
+                File.Copy(path, Path.Combine(_playlistFolder.FullName, playlistName), true);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to copy playlist for loading: {Name}", playlistName);
+                continue;
+            }
+
+            try
+            {
+                var playlist = pm.GetPlaylist(playlistName, false);
+                if (playlist == null)
+                {
+                    Log.Warning("Playlist is loaded as null: {Name}", playlistName);
+                }
+                else
+                {
+                    playlists.Add(playlist);
+                    songCount += playlists.Count;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to load playlist: {Name}", playlistName);
+            }
         }
-        catch (Exception e)
+
+        var keys = new List<string>(songCount);
+        var deduped = playlists.SelectMany(GetKeysFromPlaylist).Distinct();
+        keys.AddRange(deduped);
+        _keys = keys;
+        _playlistFolder.Delete(true);
+        Log.Debug("Loaded {SongCount} songs from {PlaylistCount} playlists", keys.Count, playlists.Count);
+    }
+
+    private IEnumerable<string> GetKeysFromPlaylist(IPlaylist playlist)
+    {
+        foreach (var song in playlist)
         {
-            _playlist = null;
-            Log.Error(e, "Failed to load playlist: {Name}", playlistName);
+            if (!string.IsNullOrEmpty(song.Key))
+            {
+                yield return song.Key;
+            }
+            else if (!string.IsNullOrEmpty(song.Hash))
+            {
+                var songDetailsSong = GetSongByHash(song.Hash);
+                if (songDetailsSong != null)
+                {
+                    yield return songDetailsSong.Value.key;
+                }
+            }
+            else
+            {
+                Log.Warning("Playlist entry with no hash or key encountered. Skipping");
+            }
         }
     }
 
     protected override IEnumerable<Song> GetSongDetailSongs()
     {
-        if (_playlist == null)
+        if (_keys.Count == 0)
         {
-            Log.Warning("Playlist is not loaded");
+            Log.Warning("No songs are loaded from playlists");
             return [];
         }
 
-        var result = _playlist.Select(entry =>
-            {
-                if (!string.IsNullOrEmpty(entry.Hash))
-                {
-                    return GetSongByHash(entry.Hash);
-                }
-
-                if (!string.IsNullOrEmpty(entry.Key))
-                {
-                    return GetSongByBsr(entry.Key);
-                }
-
-                Log.Warning("Playlist entry with no hash or key encountered. Skipping");
-
-                return null;
-            })
-            .SelectNotNull();
+        var result = _keys.Select(GetSongByBsr).SelectNotNull();
         return result;
     }
 }
