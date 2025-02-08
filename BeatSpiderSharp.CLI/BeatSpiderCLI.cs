@@ -16,7 +16,7 @@ public class BeatSpiderCLI : BeatSpider
 #if DEBUG
             .MinimumLevel.Debug()
 #endif
-            .WriteTo.File("BeatSpiderCLI.log", rollingInterval: RollingInterval.Day)
+            // .WriteTo.File("BeatSpiderCLI.log", rollingInterval: RollingInterval.Day)
             .WriteTo.Console();
     }
 
@@ -96,7 +96,6 @@ public class BeatSpiderCLI : BeatSpider
 
         Log.Information("Filtered songs: {Count}", filteredSongs.Count());
 
-        // LegacyPresetLoader.SaveLegacyPreset(preset, "./output.json");
         return 0;
     }
 }
