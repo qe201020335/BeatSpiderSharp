@@ -47,7 +47,7 @@ public class BeatSpiderCLI : BeatSpider
             // LegacyPresetLoader.SaveLegacyPreset(preset, "./output.json");
             preset = legacy.ConvertToPreset(Path.GetFileNameWithoutExtension(options.InputPreset));
 
-            if (!string.IsNullOrEmpty(options.SaveConvertedPresetPath))
+            if (!string.IsNullOrWhiteSpace(options.SaveConvertedPresetPath))
             {
                 Log.Information("Saving converted preset");
                 PresetLoader.SavePreset(preset, options.SaveConvertedPresetPath);
@@ -55,7 +55,7 @@ public class BeatSpiderCLI : BeatSpider
 
             if (options.ConvertPresetAndExit)
             {
-                if (!string.IsNullOrEmpty(options.SaveConvertedPresetPath))
+                if (!string.IsNullOrWhiteSpace(options.SaveConvertedPresetPath))
                 {
                     Log.Information("[ConvertPresetAndExit] Preset has been converted, exiting");
                 }
@@ -78,7 +78,7 @@ public class BeatSpiderCLI : BeatSpider
             }
 
             preset = p;
-            if (!string.IsNullOrEmpty(options.SaveConvertedPresetPath))
+            if (!string.IsNullOrWhiteSpace(options.SaveConvertedPresetPath))
             {
                 Log.Warning("Cannot save converted preset when input is not a legacy preset");
             }

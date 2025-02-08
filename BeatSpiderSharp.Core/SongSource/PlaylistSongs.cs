@@ -81,11 +81,11 @@ public class PlaylistSongs : SongDetailsSongs
     {
         foreach (var song in playlist)
         {
-            if (!string.IsNullOrEmpty(song.Key))
+            if (!string.IsNullOrWhiteSpace(song.Key))
             {
                 yield return song.Key;
             }
-            else if (!string.IsNullOrEmpty(song.Hash))
+            else if (!string.IsNullOrWhiteSpace(song.Hash))
             {
                 var songDetailsSong = GetSongByHash(song.Hash);
                 if (songDetailsSong != null)

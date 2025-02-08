@@ -53,7 +53,9 @@ public static class LegacyPresetLoader
         var input = new InputConfig
         {
             Source = SongInputSource.SongDetailsCache,
-            Playlists = [legacyPreset.PlaylistInput.Path],
+            Playlists = string.IsNullOrWhiteSpace(legacyPreset.PlaylistInput.Path)
+                ? []
+                : [legacyPreset.PlaylistInput.Path],
             ManualInput = legacyPreset.ManualSongInput.Songs.ToList()
         };
         Log.Debug("Legacy preset input source: {Source}", legacyPreset.SongSource);
@@ -194,7 +196,7 @@ public static class LegacyPresetLoader
     private static void MergeBeatSaverSetting(FilterOptions options, LegacyPreset.BeatSaverSetting setting)
     {
         Log.Debug("Merging BeatSaver source settings into filter options");
-        if (!string.IsNullOrEmpty(setting.SearchKeyword) || setting.StartPage.HasValue)
+        if (!string.IsNullOrWhiteSpace(setting.SearchKeyword) || setting.StartPage.HasValue)
         {
             Log.Warning("BeatSaver search and page number are not supported!");
         }
