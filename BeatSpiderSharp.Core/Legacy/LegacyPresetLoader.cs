@@ -99,7 +99,7 @@ public static class LegacyPresetLoader
                           $"重制版项目地址：https://github.com/qe201020335/BeatSpiderSharp",
             Input = input,
             Output = output,
-            Filters = [options]
+            DetailFilters = [options]
         };
 
 #if DEBUG
@@ -212,7 +212,7 @@ public static class LegacyPresetLoader
             }
 
             options.ScoreSaberRanking.Enable = true;
-            options.ScoreSaberRanking.Filter = [RankingStatus.Ranked];
+            options.ScoreSaberRanking.Filter = new HashSet<RankingStatus> { RankingStatus.Ranked };
         }
 
         if (setting.Difficulty.Enable)
@@ -254,7 +254,7 @@ public static class LegacyPresetLoader
         {
             options.RequireMods.Enable = true;
             options.RequireMods.Filter = options.RequireMods.Filter
-                .Concat(setting.RequireMods.RequireMods.ToMMods()).Distinct().ToList();
+                .Concat(setting.RequireMods.RequireMods.ToMMods()).ToHashSet();
         }
 
         if (setting.ExcludeMods.Enable)
@@ -269,7 +269,7 @@ public static class LegacyPresetLoader
     {
         Log.Debug("Merging ScoreSaber source setting into filter options");
         options.ScoreSaberRanking.Enable = true;
-        options.ScoreSaberRanking.Filter = [RankingStatus.Ranked];
+        options.ScoreSaberRanking.Filter = new HashSet<RankingStatus> { RankingStatus.Ranked };
         CombineRange(options.ScoreSaberStars, setting.StarDifficulty);
     }
 
@@ -315,7 +315,7 @@ public static class LegacyPresetLoader
             IncludeTags = new()
             {
                 Enable = setting.Tags.Include.Enable,
-                Filter = setting.Tags.Include.Content.ToList(),
+                Filter = setting.Tags.Include.Content.ToHashSet(),
                 IsOr = !setting.Tags.Include.And
             },
             ExcludeTags = new(setting.Tags.Exclude.Content.ToList())
@@ -356,19 +356,19 @@ public static class LegacyPresetLoader
             {
                 Enable = setting.IncludeCharacteristics.Enable,
                 Filter = setting.IncludeCharacteristics.Characteristics.Select(LegacyExtensions.ToMCharacteristic)
-                    .ToList(),
+                    .ToHashSet(),
                 IsOr = true
             },
             IncludeDifficulties = new()
             {
                 Enable = setting.IncludeDifficulties.Enable,
-                Filter = setting.IncludeDifficulties.Difficulties.Select(LegacyExtensions.ToMDifficulty).ToList(),
+                Filter = setting.IncludeDifficulties.Difficulties.Select(LegacyExtensions.ToMDifficulty).ToHashSet(),
                 IsOr = !setting.IncludeDifficulties.And
             },
             RequireMods = new()
             {
                 Enable = setting.RequireMods.Enable,
-                Filter = setting.RequireMods.Mods.ToMMods(),
+                Filter = setting.RequireMods.Mods.ToMMods().ToHashSet(),
                 IsOr = true
             },
             ExcludeMods = new(setting.ExcludeMods.Mods.ToMMods())
@@ -418,8 +418,8 @@ public static class LegacyPresetLoader
                 Max = setting.Walls.Max
             },
             ScoreSaberRanking = new(setting.RankedSong.IsRanked
-                ? [RankingStatus.Ranked]
-                : [RankingStatus.Unranked, RankingStatus.Qualified])
+                ? new HashSet<RankingStatus> { RankingStatus.Ranked }
+                : new HashSet<RankingStatus> { RankingStatus.Unranked, RankingStatus.Qualified })
             {
                 Enable = setting.RankedSong.Enable
             },

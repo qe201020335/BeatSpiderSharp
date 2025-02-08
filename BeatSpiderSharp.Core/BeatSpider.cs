@@ -1,4 +1,5 @@
-﻿using BeatSpiderSharp.Core.Interfaces;
+﻿using BeatSpiderSharp.Core.Filters;
+using BeatSpiderSharp.Core.Interfaces;
 using BeatSpiderSharp.Core.Models;
 using BeatSpiderSharp.Core.Models.Preset;
 using BeatSpiderSharp.Core.Models.Preset.Enums;
@@ -49,9 +50,64 @@ public abstract class BeatSpider
         };
     }
 
-    protected IEnumerable<BeatSpiderSong> FilterSongs(IEnumerable<BeatSpiderSong> songs, Preset preset)
+    protected async Task<IEnumerable<BeatSpiderSong>> FilterSongsAsync(IEnumerable<BeatSpiderSong> songs, Preset preset)
     {
+        var detailFilterOptions = preset.DetailFilters;
+        if (detailFilterOptions.Count == 0)
+        {
+            Log.Warning("No filters specified");
+            return songs;
+        }
+        
+        if (detailFilterOptions.Count == 1)
+        {
+            var filter = new DetailFilter(detailFilterOptions[0]) { LogExclusions = Verbose };
+            await filter.InitAsync();
+            return songs.Where(filter.FilterSong);
+        }
+
+        var detailFilters = detailFilterOptions
+            .Select(options => new DetailFilter(options) { LogExclusions = Verbose })
+            .ToList();
+        await Task.WhenAll(detailFilters.Select(filter => filter.InitAsync()));
+        return songs.Where(song => detailFilters.Any(filter => filter.FilterSong(song)));
+    }
+    
+    protected int OutputSongs(IEnumerable<BeatSpiderSong> songs, OutputConfig output)
+    {
+        if (output.LimitSongs && output.MaxSongs.HasValue && output.MaxSongs.Value > 0)
+        {
+            Log.Information("Applying count limit: {Count}", output.MaxSongs.Value);
+            songs = songs.Take(output.MaxSongs.Value);
+        }
+
+        var count = 0;
+        if (Verbose)
+        {
+            foreach (var song in songs)
+            {
+                Log.Debug("Song {Bsr} included", song.Bsr);
+                count++;
+            }
+        }
+        else
+        {
+            count = songs.Count();
+        }
+        
         // TODO
-        return [];
+        // if (output.SavePlaylist)
+        // {
+        //     Log.Information("Saving playlist to {Path}", output.PlaylistPath);
+        //     // TODO
+        // }
+        //
+        // if (output.DownloadSongs)
+        // {
+        //     Log.Information("Downloading songs to {Path}", output.DownloadPath);
+        //     // TODO
+        // }
+        
+        return count;
     }
 }

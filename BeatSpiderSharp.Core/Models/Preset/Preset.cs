@@ -15,5 +15,5 @@ public class Preset
     /// <summary>
     /// Multiple instances applied as OR
     /// </summary>
-    public IList<FilterOptions> Filters { get; set; } = new List<FilterOptions>(1);
+    public IList<FilterOptions> DetailFilters { get; set; } = new List<FilterOptions>(1);
 }

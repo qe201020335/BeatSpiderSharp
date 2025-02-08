@@ -90,12 +90,14 @@ public class BeatSpiderCLI : BeatSpider
             }
         }
 
+        Log.Information("Starting filtering for preset: {Preset}", preset.Name);
+        
         var songSource = GetSongSource(preset.Input);
         var allSongs = songSource.GetSongs();
-        var filteredSongs = FilterSongs(allSongs, preset);
+        var filteredSongs = await FilterSongsAsync(allSongs, preset);
+        var count = OutputSongs(filteredSongs, preset.Output);
 
-        Log.Information("Filtered songs: {Count}", filteredSongs.Count());
-
+        Log.Information("Filtered songs: {Count}", count);
         return 0;
     }
 }
