@@ -90,14 +90,13 @@ public static class LegacyPresetLoader
                 break;
         }
 
-        var username = Environment.UserName;
         var preset = new Preset
         {
             Name = name,
-            Author = username,
-            Description = $"该歌单由{username}使用BeatSpider生成。\n" +
-                          $"BeatSpider是由WGzeyu制作的用于生成与整理曲包的免费软件，禁止商用。\n" +
-                          $"项目地址：https://github.com/WGzeyu/BeatSpider",
+            Author = Environment.UserName,
+            Description = $"该歌单由免费工具 BeatSpider (BeatSpiderSharp) 生成。\n\n" +
+                          $"源项目地址（已停止更新）：https://github.com/WGzeyu/BeatSpider\n" + 
+                          $"重制版项目地址：https://github.com/qe201020335/BeatSpiderSharp",
             Input = input,
             Output = output,
             Filters = [options]
