@@ -50,7 +50,7 @@ public abstract class BeatSpider
         };
     }
 
-    protected async Task<IEnumerable<BeatSpiderSong>> FilterSongsAsync(IEnumerable<BeatSpiderSong> songs, Preset preset)
+    protected async Task<IEnumerable<BeatSpiderSong>?> FilterSongsAsync(IEnumerable<BeatSpiderSong> songs, Preset preset)
     {
         var detailFilterOptions = preset.DetailFilters;
         if (detailFilterOptions.Count == 0)
@@ -58,18 +58,20 @@ public abstract class BeatSpider
             Log.Warning("No filters specified");
             return songs;
         }
-        
-        if (detailFilterOptions.Count == 1)
-        {
-            var filter = new DetailFilter(detailFilterOptions[0]) { LogExclusions = Verbose };
-            await filter.InitAsync();
-            return songs.Where(filter.FilterSong);
-        }
 
         var detailFilters = detailFilterOptions
             .Select(options => new DetailFilter(options) { LogExclusions = Verbose })
             .ToList();
-        await Task.WhenAll(detailFilters.Select(filter => filter.InitAsync()));
+        try
+        {
+            await Task.WhenAll(detailFilters.Select(filter => filter.InitAsync()));
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to initialize one or more filters");
+            return null;
+        }
+
         return songs.Where(song => detailFilters.Any(filter => filter.FilterSong(song)));
     }
     

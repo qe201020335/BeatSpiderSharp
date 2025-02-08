@@ -1,4 +1,5 @@
-﻿using BeatSpiderSharp.Core.Interfaces;
+﻿using BeatSaverSharp;
+using BeatSpiderSharp.Core.Interfaces;
 using BeatSpiderSharp.Core.Models;
 using BeatSpiderSharp.Core.Models.Preset;
 using BeatSpiderSharp.Core.Models.Preset.Enums;
@@ -12,6 +13,8 @@ public class DetailFilter: ISongFilter
 {
     private readonly FilterOptions _options;
 
+    private string? _uploaderName;
+
     public bool LogExclusions { get; init; }
     
     public DetailFilter(FilterOptions options)
@@ -21,17 +24,49 @@ public class DetailFilter: ISongFilter
 
     public async Task InitAsync()
     {
-        //TODO Deal with MapperID
+        Log.Debug("Initializing DetailFilter");
+        if (_options.UploaderId && _options.UploaderId.Filter != null && _options.UploaderId.Filter.Value > 0)
+        {
+            var id = _options.UploaderId.Filter.Value;
+            Log.Debug("Getting uploader name for uploader id {Id}", id);
+            var beatSaver = new BeatSaver("BeatSpiderSharp", new Version(1, 0, 0));
+            var user = await beatSaver.User(id);
+            if (user == null)
+            {
+                Log.Error("Failed to get user with id {Id} from BeatSaver", id);
+                throw new Exception($"Failed to get user with id {id} from BeatSaver");
+            }
+            var name = user.Name;
+            if (_options.UploaderName && !string.IsNullOrWhiteSpace(_options.UploaderName.Filter) &&
+                !name.Equals(_options.UploaderName.Filter, StringComparison.InvariantCultureIgnoreCase))
+            {
+                Log.Error(
+                    "UploaderName filter ({Name1}) doesn't match (case insensitive) BeatSaver username ({Name2}) of id {Id}",
+                    _options.UploaderName.Filter, name, id);
+                throw new Exception(
+                    $"UploaderName filter ({_options.UploaderName.Filter}) doesn't match (case insensitive) BeatSaver username ({name}) of id {id}");
+            }
+            _uploaderName = name;
+            Log.Information("Using uploader name {Name} for uploader id {Id}", _uploaderName, id);
+        }
     }
 
     public bool FilterSong(BeatSpiderSong song)
     {
         var filter = _options;
         var details = song.SongDetails;
-        
-        // TODO SongDetails doesn't have uploader id
-        
-        if (filter.UploaderName && filter.UploaderName.Filter != details.uploaderName)
+
+        if (!string.IsNullOrWhiteSpace(_uploaderName))
+        {
+            // Uploader name queried from BeatSaver based on UploaderId
+            if (!_uploaderName.Equals(details.uploaderName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                LogExclusion(song, "Uploader name doesn't match");
+                return false;
+            }
+        } 
+        else if (filter.UploaderName && !string.IsNullOrWhiteSpace(filter.UploaderName.Filter) &&
+                 !filter.UploaderName.Filter.Equals(details.uploaderName, StringComparison.InvariantCultureIgnoreCase))
         {
             LogExclusion(song, "Uploader name doesn't match");
             return false;

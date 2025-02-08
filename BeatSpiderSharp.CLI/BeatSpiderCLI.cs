@@ -95,6 +95,11 @@ public class BeatSpiderCLI : BeatSpider
         var songSource = GetSongSource(preset.Input);
         var allSongs = songSource.GetSongs();
         var filteredSongs = await FilterSongsAsync(allSongs, preset);
+        if (filteredSongs == null)
+        {
+            Log.Error("Failed to filter songs");
+            return -1;
+        }
         var count = OutputSongs(filteredSongs, preset.Output);
 
         Log.Information("Filtered songs: {Count}", count);
