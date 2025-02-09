@@ -11,10 +11,10 @@ public class PlaylistExporter
 {
     public bool PostProcess { get; init; }
 
-    public void Export(IEnumerable<BeatSpiderSong> songs, string name, string author, string? description, string targetDirectory)
+    public void Export(IEnumerable<BeatSpiderSong> songs, string title, string author, string? description, string targetPath)
     {
-        Log.Information("Exporting playlist {Name}", name);
-        var playlist = new LegacyPlaylist(name, name, string.IsNullOrWhiteSpace(author) ? null : author)
+        Log.Information("Exporting playlist {Name}", title);
+        var playlist = new LegacyPlaylist(title, title, string.IsNullOrWhiteSpace(author) ? null : author)
         {
             Description = description, 
             ReadOnly = true
@@ -27,7 +27,7 @@ public class PlaylistExporter
             playlist.Add(song.Hash, song.SongDetails.songName, song.Bsr, null);
         }
         
-        Log.Debug("Saving playlist {Name} into {TargetDirectory}", name, targetDirectory);
+        Log.Debug("Saving playlist {Name} to {Target}", title, targetPath);
 
         JsonSerializerSettings settings;
         object obj;
@@ -60,7 +60,6 @@ public class PlaylistExporter
             obj = playlist;
         }
         var serializer = JsonSerializer.Create(settings);
-        var path = Path.Combine(targetDirectory, name + ".bplist");
-        serializer.Serialize(obj, path);
+        serializer.Serialize(obj, targetPath);
     }
 }

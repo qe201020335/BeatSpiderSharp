@@ -109,7 +109,8 @@ public class BeatSpiderCLI : BeatSpider
             return -1;
         }
 
-        var count = OutputSongs(filteredSongs, preset);
+        var pathTemplate = Path.GetFileNameWithoutExtension(options.InputPreset);
+        var count = OutputSongs(filteredSongs, preset, pathTemplate);
         Log.Information("Filtered songs: {Count}", count);
         return 0;
     }

@@ -81,7 +81,7 @@ public abstract class BeatSpider
         return songs.Where(song => detailFilters.Any(filter => filter.FilterSong(song)));
     }
 
-    protected int OutputSongs(IEnumerable<BeatSpiderSong> songs, Preset preset)
+    protected int OutputSongs(IEnumerable<BeatSpiderSong> songs, Preset preset, string pathTemplate)
     {
         var output = preset.Output;
         if (output.LimitSongs && output.MaxSongs.HasValue && output.MaxSongs.Value > 0)
@@ -102,23 +102,24 @@ public abstract class BeatSpider
         var consolidated = songs.ToArray();
 
         // Process name variables
-        var name = preset.Name.Replace("[日期]", DateTime.Today.ToString("yyyy-MM-dd"));
-        var songPath = output.DownloadPath.Replace("[日期]", DateTime.Today.ToString("yyyy-MM-dd"));
+        var playlistFileName = pathTemplate.Replace("[日期]", DateTime.Today.ToString("yyyy-MM-dd")) + ".bplist";
+        var playlistPath = Path.Combine(output.PlaylistPath, playlistFileName);
+        var songPath = Path.Combine(output.DownloadPath, pathTemplate);  // no replacement on song path
 
         // TODO
         // if (output.DownloadSongs)
         // {
         //     Log.Information("Querying BeatSaver for map download info");
         //     
-        //     Log.Information("Downloading songs to {Path}", output.DownloadPath);
+        //     Log.Information("Downloading songs to {Path}", songPath);
         //     Parallel.
         // }
 
         if (output.SavePlaylist)
         {
-            Log.Information("Saving playlist to {Path}", output.PlaylistPath);
+            Log.Information("Saving playlist to {Path}", playlistPath);
             var exporter = new PlaylistExporter { PostProcess = output.PostProcessPlaylist };
-            exporter.Export(consolidated, name, preset.Author, preset.Description, output.PlaylistPath);
+            exporter.Export(consolidated, preset.Name, preset.Author, preset.Description, playlistPath);
         }
 
         return consolidated.Length;

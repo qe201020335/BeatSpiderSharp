@@ -32,9 +32,9 @@ public static class LegacyPresetLoader
         LegacySerializer.Serialize(preset, path);
     }
 
-    public static Preset ConvertToPreset(this LegacyPreset legacyPreset, string name, string author)
+    public static Preset ConvertToPreset(this LegacyPreset legacyPreset, string fileName, string author)
     {
-        Log.Information("Converting legacy preset to new preset: {Name}", name);
+        Log.Information("Converting legacy preset to new preset: {Name}", fileName);
         WarnUnsupported(legacyPreset);
         var options = ConvertFilterOptions(legacyPreset.SongFilter);
         var output = new OutputConfig
@@ -93,6 +93,8 @@ public static class LegacyPresetLoader
                 break;
         }
 
+        var name = GetPresetName(fileName);
+        Log.Information("Using preset name: {Name}", name);
         var preset = new Preset
         {
             Name = name,
@@ -110,6 +112,30 @@ public static class LegacyPresetLoader
         Log.Debug("Converted preset: {@NewPreset}", preset);
 #endif
         return preset;
+    }
+    
+    private static string GetPresetName(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            // unlikely to happen
+            return "No name " + DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        }
+
+        var leftBracket = fileName.IndexOf('【');
+        if (leftBracket == -1)
+        {
+            return fileName;
+        }
+        
+        var rightBracket = fileName[leftBracket..].IndexOf('】');
+        if (rightBracket == -1)
+        {
+            return fileName;
+        }
+        
+        var name = fileName[(leftBracket + 1)..(rightBracket + leftBracket)];
+        return string.IsNullOrWhiteSpace(name) ? fileName : name;
     }
     
     private static void WarnUnsupported(LegacyPreset preset)
