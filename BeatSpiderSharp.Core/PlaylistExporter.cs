@@ -1,4 +1,5 @@
-﻿using BeatSaberPlaylistsLib.Legacy;
+﻿using System.Reflection;
+using BeatSaberPlaylistsLib.Legacy;
 using BeatSpiderSharp.Core.Models;
 using BeatSpiderSharp.Core.Utilities.Extensions;
 using Newtonsoft.Json;
@@ -19,9 +20,13 @@ public class PlaylistExporter
             Description = description, 
             ReadOnly = true
         };
+
+        using var coverStream = GetCover(title);
+        playlist.SetCover(coverStream);
+
         // TODO add preset to playlist
         // playlist.SetCustomData("BeatSpiderSharpPreset", "TODO");
-        // TODO Add playlist image
+
         foreach (var song in songs)
         {
             playlist.Add(song.Hash, song.SongDetails.songName, song.Bsr, null);
@@ -61,5 +66,17 @@ public class PlaylistExporter
         }
         var serializer = JsonSerializer.Create(settings);
         serializer.Serialize(obj, targetPath);
+    }
+
+    private Stream GetCover(string name)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var stream = assembly.GetManifestResourceStream("BeatSpiderSharp.Core.Assets.cover.png");
+        if (stream == null)
+        {
+            throw new NullReferenceException("Could not find cover.png in resources");
+        }
+
+        return stream;
     }
 }
