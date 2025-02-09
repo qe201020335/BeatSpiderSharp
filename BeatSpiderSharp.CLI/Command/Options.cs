@@ -8,6 +8,8 @@ public record Options
     
     public string? OutputSongPath { get; init; }
     
+    public string? PresetAuthor { get; init; }
+    
     public bool DisablePlaylistOutput { get; init; }
     
     public bool DisableSongDownload { get; init; }

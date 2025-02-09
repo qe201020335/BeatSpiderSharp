@@ -10,6 +10,7 @@ public class CommandParser
     private static readonly Option<string> _inputPreset = new(["--input-preset", "-i"], description: "Input preset file path") { IsRequired = true };
     private static readonly Option<string> _outputPlaylist = new(["--output-playlist", "-o"], description: "Output playlist file path");
     private static readonly Option<string> _outputSongPath = new(["--output-song-path", "-s"], description: "Output song path");
+    private static readonly Option<string> _presetAuthor = new(["--preset-author"], description: "Preset author");
     private static readonly Option<bool> _disablePlaylistOutput = new(["--disable-playlist-output", "-d"], description: "Disable playlist output", getDefaultValue: () => false);
     private static readonly Option<bool> _disableSongDownload = new(["--disable-song-download", "-D"], description: "Disable song download", getDefaultValue: () => false);
     private static readonly Option<bool> _inputIsLegacy = new(["--legacy"], description: "Input preset is in legacy format", getDefaultValue: () => false);
@@ -26,6 +27,7 @@ public class CommandParser
                 InputPreset = bindingContext.ParseResult.GetValueForOption(_inputPreset) ?? "",
                 OutputPlaylist = bindingContext.ParseResult.GetValueForOption(_outputPlaylist),
                 OutputSongPath = bindingContext.ParseResult.GetValueForOption(_outputSongPath),
+                PresetAuthor = bindingContext.ParseResult.GetValueForOption(_presetAuthor),
                 DisablePlaylistOutput = bindingContext.ParseResult.GetValueForOption(_disablePlaylistOutput),
                 DisableSongDownload = bindingContext.ParseResult.GetValueForOption(_disableSongDownload),
                 InputIsLegacy = bindingContext.ParseResult.GetValueForOption(_inputIsLegacy),
@@ -43,6 +45,7 @@ public class CommandParser
             _inputPreset,
             _outputPlaylist,
             _outputSongPath,
+            _presetAuthor,
             _disablePlaylistOutput,
             _disableSongDownload,
             _inputIsLegacy,

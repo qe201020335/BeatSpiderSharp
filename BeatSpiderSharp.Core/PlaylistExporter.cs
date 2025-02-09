@@ -14,7 +14,11 @@ public class PlaylistExporter
     public void Export(IEnumerable<BeatSpiderSong> songs, string name, string author, string? description, string targetDirectory)
     {
         Log.Information("Exporting playlist {Name}", name);
-        var playlist = new LegacyPlaylist(name, name, author) { Description = description, ReadOnly = true};
+        var playlist = new LegacyPlaylist(name, name, string.IsNullOrWhiteSpace(author) ? null : author)
+        {
+            Description = description, 
+            ReadOnly = true
+        };
         // TODO add preset to playlist
         // playlist.SetCustomData("BeatSpiderSharpPreset", "TODO");
         // TODO Add playlist image

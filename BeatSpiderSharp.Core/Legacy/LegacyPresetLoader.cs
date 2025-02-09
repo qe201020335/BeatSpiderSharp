@@ -32,7 +32,7 @@ public static class LegacyPresetLoader
         LegacySerializer.Serialize(preset, path);
     }
 
-    public static Preset ConvertToPreset(this LegacyPreset legacyPreset, string name)
+    public static Preset ConvertToPreset(this LegacyPreset legacyPreset, string name, string author)
     {
         Log.Information("Converting legacy preset to new preset: {Name}", name);
         WarnUnsupported(legacyPreset);
@@ -96,7 +96,7 @@ public static class LegacyPresetLoader
         var preset = new Preset
         {
             Name = name,
-            Author = Environment.UserName,
+            Author = author,
             Description = $"该歌单由免费工具 BeatSpider (BeatSpiderSharp) 生成。\n\n" +
                           $"源项目地址（已停止更新）：https://github.com/WGzeyu/BeatSpider\n" + 
                           $"重制版项目地址：https://github.com/qe201020335/BeatSpiderSharp",

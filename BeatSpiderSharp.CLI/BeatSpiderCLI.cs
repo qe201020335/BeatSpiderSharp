@@ -45,7 +45,9 @@ public class BeatSpiderCLI : BeatSpider
             }
 
             // LegacyPresetLoader.SaveLegacyPreset(preset, "./output.json");
-            preset = legacy.ConvertToPreset(Path.GetFileNameWithoutExtension(options.InputPreset));
+            // allow empty author
+            var author = options.PresetAuthor ?? Environment.UserName; 
+            preset = legacy.ConvertToPreset(Path.GetFileNameWithoutExtension(options.InputPreset), author);
 
             if (!string.IsNullOrWhiteSpace(options.SaveConvertedPresetPath))
             {
@@ -90,7 +92,7 @@ public class BeatSpiderCLI : BeatSpider
             }
         }
 
-        OverwriteOutput(preset.Output, options);
+        OverwriteOptions(preset, options);
         if (!VerifyOutput(preset.Output))
         {
             Log.Error("Output configuration is invalid");
@@ -112,8 +114,11 @@ public class BeatSpiderCLI : BeatSpider
         return 0;
     }
 
-    private void OverwriteOutput(OutputConfig output, Options options)
+    private void OverwriteOptions(Preset preset, Options options)
     {
+        preset.Author = options.PresetAuthor ?? preset.Author;
+        
+        var output = preset.Output;
         if (options.DisablePlaylistOutput)
         {
             output.SavePlaylist = false;
