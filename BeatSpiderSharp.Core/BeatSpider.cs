@@ -11,6 +11,8 @@ namespace BeatSpiderSharp.Core;
 
 public abstract class BeatSpider
 {
+    protected SpecialFolders SpecialFolders { get; } = new();
+
     protected SongDetails SongDetails { get; private set; } = null!;
     
     protected bool Verbose { get; set; }
@@ -18,6 +20,7 @@ public abstract class BeatSpider
     protected BeatSpider()
     {
         SetupLogging();
+        SongDetails.SetCacheDirectory(SpecialFolders.DataFolder);
     }
 
     private void SetupLogging()
@@ -44,7 +47,7 @@ public abstract class BeatSpider
 
         return input.Source switch
         {
-            SongInputSource.Playlists => new PlaylistSongs(input.Playlists, SongDetails),
+            SongInputSource.Playlists => new PlaylistSongs(input.Playlists, SongDetails, SpecialFolders.TempFolder),
             SongInputSource.ManualInput => new ManualSongInput(input.ManualInput, SongDetails),
             _ => new SongDetailsSongs(SongDetails) { ReverseOrder = true }
         };

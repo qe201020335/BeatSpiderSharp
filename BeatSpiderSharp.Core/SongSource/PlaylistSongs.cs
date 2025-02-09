@@ -13,10 +13,7 @@ public class PlaylistSongs : SongDetailsSongs
 {
     private readonly IList<string> _keys;
 
-    private readonly DirectoryInfo _playlistFolder =
-        new(Path.Combine(Path.GetTempPath(), "BeatSpider", "playlists_" + Path.GetRandomFileName()));
-
-    public PlaylistSongs(IList<string> playlistPaths, SongDetails songDetails) : base(songDetails)
+    public PlaylistSongs(IList<string> playlistPaths, SongDetails songDetails, string tempRoot) : base(songDetails)
     {
         if (playlistPaths.Count == 0)
         {
@@ -25,8 +22,10 @@ public class PlaylistSongs : SongDetailsSongs
             return;
         }
 
-        _playlistFolder.Create();
-        var pm = new PlaylistManager(_playlistFolder.FullName, new LegacyPlaylistHandler(), new BlistPlaylistHandler());
+        var playlistFolder = new DirectoryInfo(Path.Combine(tempRoot, "playlists_" + Path.GetRandomFileName()));
+        Log.Debug("Using temporary folder for playlists: {PlaylistFolder}", playlistFolder.FullName);
+        playlistFolder.Create();
+        var pm = new PlaylistManager(playlistFolder.FullName, new LegacyPlaylistHandler(), new BlistPlaylistHandler());
 
         var playlists = new List<IPlaylist>(playlistPaths.Count);
         var songCount = 0;
@@ -42,7 +41,7 @@ public class PlaylistSongs : SongDetailsSongs
             var playlistName = Path.GetFileName(path);
             try
             {
-                File.Copy(path, Path.Combine(_playlistFolder.FullName, playlistName), true);
+                File.Copy(path, Path.Combine(playlistFolder.FullName, playlistName), true);
             }
             catch (Exception e)
             {
@@ -73,7 +72,7 @@ public class PlaylistSongs : SongDetailsSongs
         var deduped = playlists.SelectMany(GetKeysFromPlaylist).Distinct();
         keys.AddRange(deduped);
         _keys = keys;
-        _playlistFolder.Delete(true);
+        playlistFolder.Delete(true);
         Log.Debug("Loaded {SongCount} songs from {PlaylistCount} playlists", keys.Count, playlists.Count);
     }
 
