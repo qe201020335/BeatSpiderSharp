@@ -91,7 +91,7 @@ public abstract class BeatSpider
         {
             foreach (var song in songs)
             {
-                Log.Debug("Song {Bsr} included", song.Bsr);
+                Log.Debug("Song {Bsr} ({Title} - {Mapper}) included", song.Bsr, song.SongDetails.songName, song.SongDetails.uploaderName);
                 count++;
             }
         }
