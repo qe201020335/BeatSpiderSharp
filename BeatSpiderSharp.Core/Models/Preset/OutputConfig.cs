@@ -7,6 +7,8 @@ public class OutputConfig
     public int? MaxSongs { get; set; }
 
     public bool SavePlaylist { get; set; }
+    
+    public bool PostProcessPlaylist { get; set; }
 
     public string PlaylistPath { get; set; } = string.Empty;
 

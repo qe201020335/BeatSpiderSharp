@@ -1,4 +1,5 @@
-﻿using BeatSpiderSharp.Core.Filters;
+﻿using BeatSaverSharp;
+using BeatSpiderSharp.Core.Filters;
 using BeatSpiderSharp.Core.Interfaces;
 using BeatSpiderSharp.Core.Models;
 using BeatSpiderSharp.Core.Models.Preset;
@@ -13,8 +14,10 @@ public abstract class BeatSpider
 {
     protected SpecialFolders SpecialFolders { get; } = new();
 
+    protected BeatSaver BeatSaver { get; } = new("BeatSpiderSharp", new Version(1, 0, 0));
+
     protected SongDetails SongDetails { get; private set; } = null!;
-    
+
     protected bool Verbose { get; set; }
 
     protected BeatSpider()
@@ -33,7 +36,7 @@ public abstract class BeatSpider
     protected virtual void ConfigureLogger(LoggerConfiguration configuration)
     {
     }
-    
+
     protected virtual async Task InitAsync()
     {
         Log.Information("BeatSpider initializing");
@@ -67,7 +70,7 @@ public abstract class BeatSpider
             .ToList();
         try
         {
-            await Task.WhenAll(detailFilters.Select(filter => filter.InitAsync()));
+            await Task.WhenAll(detailFilters.Select(filter => filter.InitAsync(BeatSaver)));
         }
         catch (Exception e)
         {
@@ -77,42 +80,47 @@ public abstract class BeatSpider
 
         return songs.Where(song => detailFilters.Any(filter => filter.FilterSong(song)));
     }
-    
-    protected int OutputSongs(IEnumerable<BeatSpiderSong> songs, OutputConfig output)
+
+    protected int OutputSongs(IEnumerable<BeatSpiderSong> songs, Preset preset)
     {
+        var output = preset.Output;
         if (output.LimitSongs && output.MaxSongs.HasValue && output.MaxSongs.Value > 0)
         {
             Log.Information("Applying count limit: {Count}", output.MaxSongs.Value);
             songs = songs.Take(output.MaxSongs.Value);
         }
 
-        var count = 0;
         if (Verbose)
         {
-            foreach (var song in songs)
+            songs = songs.Select(song =>
             {
-                Log.Debug("Song {Bsr} ({Title} - {Mapper}) included", song.Bsr, song.SongDetails.songName, song.SongDetails.uploaderName);
-                count++;
-            }
+                Log.Information("Song {Bsr} ({Title} - {Mapper}) included", song.Bsr, song.SongDetails.songName, song.SongDetails.uploaderName);
+                return song;
+            });
         }
-        else
-        {
-            count = songs.Count();
-        }
-        
+
+        var consolidated = songs.ToArray();
+
+        // Process name variables
+        var name = preset.Name.Replace("[日期]", DateTime.Today.ToString("yyyy-MM-dd"));
+        var songPath = output.DownloadPath.Replace("[日期]", DateTime.Today.ToString("yyyy-MM-dd"));
+
         // TODO
-        // if (output.SavePlaylist)
-        // {
-        //     Log.Information("Saving playlist to {Path}", output.PlaylistPath);
-        //     // TODO
-        // }
-        //
         // if (output.DownloadSongs)
         // {
+        //     Log.Information("Querying BeatSaver for map download info");
+        //     
         //     Log.Information("Downloading songs to {Path}", output.DownloadPath);
-        //     // TODO
+        //     Parallel.
         // }
-        
-        return count;
+
+        if (output.SavePlaylist)
+        {
+            Log.Information("Saving playlist to {Path}", output.PlaylistPath);
+            var exporter = new PlaylistExporter { PostProcess = output.PostProcessPlaylist };
+            exporter.Export(consolidated, name, preset.Author, preset.Description, output.PlaylistPath);
+        }
+
+        return consolidated.Length;
     }
 }

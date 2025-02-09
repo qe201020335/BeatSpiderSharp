@@ -90,8 +90,14 @@ public class BeatSpiderCLI : BeatSpider
             }
         }
 
+        OverwriteOutput(preset.Output, options);
+        if (!VerifyOutput(preset.Output))
+        {
+            Log.Error("Output configuration is invalid");
+            return 1;
+        }
+
         Log.Information("Starting filtering for preset: {Preset}", preset.Name);
-        
         var songSource = GetSongSource(preset.Input);
         var allSongs = songSource.GetSongs();
         var filteredSongs = await FilterSongsAsync(allSongs, preset);
@@ -100,9 +106,71 @@ public class BeatSpiderCLI : BeatSpider
             Log.Error("Failed to filter songs");
             return -1;
         }
-        var count = OutputSongs(filteredSongs, preset.Output);
 
+        var count = OutputSongs(filteredSongs, preset);
         Log.Information("Filtered songs: {Count}", count);
         return 0;
+    }
+
+    private void OverwriteOutput(OutputConfig output, Options options)
+    {
+        if (options.DisablePlaylistOutput)
+        {
+            output.SavePlaylist = false;
+        }
+        else if (output.SavePlaylist)
+        {
+            if (!string.IsNullOrWhiteSpace(options.OutputPlaylist))
+            {
+                output.PlaylistPath = options.OutputPlaylist;
+            }
+
+            output.SavePlaylist = !string.IsNullOrWhiteSpace(output.PlaylistPath);
+        }
+
+        if (options.DisableSongDownload)
+        {
+            output.DownloadSongs = false;
+        }
+        else if (output.DownloadSongs)
+        {
+            if (!string.IsNullOrWhiteSpace(options.OutputSongPath))
+            {
+                output.DownloadPath = options.OutputSongPath;
+            }
+
+            output.DownloadSongs = !string.IsNullOrWhiteSpace(output.DownloadPath);
+        }
+    }
+
+    private bool VerifyOutput(OutputConfig output)
+    {
+        if (output.SavePlaylist)
+        {
+            if (string.IsNullOrWhiteSpace(output.PlaylistPath))
+            {
+                Log.Warning("Playlist output is enabled but no path is specified");
+            }
+            else if (!Directory.Exists(output.PlaylistPath))
+            {
+                Log.Error("Playlist output path doesn't exist or is not a directory: {Path}", output.PlaylistPath);
+                return false;
+            }
+        }
+
+        if (output.DownloadSongs)
+        {
+            if (string.IsNullOrWhiteSpace(output.DownloadPath))
+            {
+                Log.Warning("Song download is enabled but no path is specified");
+            }
+            else if (!Directory.Exists(output.DownloadPath))
+            {
+                Log.Error("Song download path doesn't exist or is not a directory: {Path}", output.DownloadPath);
+                return false;
+            }
+        }
+
+        return true;
     }
 }

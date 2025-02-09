@@ -22,14 +22,13 @@ public class DetailFilter: ISongFilter
         _options = options;
     }
 
-    public async Task InitAsync()
+    public async Task InitAsync(BeatSaver beatSaver)
     {
         Log.Debug("Initializing DetailFilter");
         if (_options.UploaderId && _options.UploaderId.Filter != null && _options.UploaderId.Filter.Value > 0)
         {
             var id = _options.UploaderId.Filter.Value;
             Log.Debug("Getting uploader name for uploader id {Id}", id);
-            var beatSaver = new BeatSaver("BeatSpiderSharp", new Version(1, 0, 0));
             var user = await beatSaver.User(id);
             if (user == null)
             {

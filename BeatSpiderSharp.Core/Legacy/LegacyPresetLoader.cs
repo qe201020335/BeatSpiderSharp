@@ -42,6 +42,7 @@ public static class LegacyPresetLoader
             LimitSongs = legacyPreset.Limits.Count.Enable,
             MaxSongs = legacyPreset.Limits.Count.Content,
             SavePlaylist = legacyPreset.Output.Playlist.Enable,
+            PostProcessPlaylist = true,
             PlaylistPath = legacyPreset.Output.Playlist.Path,
             DownloadSongs = legacyPreset.Output.Songs.Enable,
             DownloadPath = legacyPreset.Output.Songs.Path,
