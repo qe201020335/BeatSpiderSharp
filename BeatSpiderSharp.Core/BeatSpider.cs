@@ -58,7 +58,7 @@ public abstract class BeatSpider
 
     protected async Task<IEnumerable<BeatSpiderSong>?> FilterSongsAsync(IEnumerable<BeatSpiderSong> songs, Preset preset)
     {
-        var detailFilterOptions = preset.DetailFilters;
+        var detailFilterOptions = preset.FilterOptions;
         if (detailFilterOptions.Count == 0)
         {
             Log.Warning("No filters specified");
@@ -66,7 +66,7 @@ public abstract class BeatSpider
         }
 
         var detailFilters = detailFilterOptions
-            .Select(options => new DetailFilter(options) { LogExclusions = Verbose })
+            .Select(options => new RootFilter(options) { LogExclusions = Verbose })
             .ToList();
         try
         {

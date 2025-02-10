@@ -1,8 +1,8 @@
 ﻿using BeatSaverSharp;
 using BeatSpiderSharp.Core.Interfaces;
 using BeatSpiderSharp.Core.Models;
-using BeatSpiderSharp.Core.Models.Preset;
 using BeatSpiderSharp.Core.Models.Preset.Enums;
+using BeatSpiderSharp.Core.Models.Preset.FilterOptions;
 using BeatSpiderSharp.Core.Utilities.Extensions;
 using Serilog;
 using SongDetailsCache.Structs;
@@ -11,13 +11,13 @@ namespace BeatSpiderSharp.Core.Filters;
 
 public class DetailFilter: ISongFilter
 {
-    private readonly FilterOptions _options;
+    private readonly DetailOptions _options;
 
     private string? _uploaderName;
 
     public bool LogExclusions { get; init; }
     
-    public DetailFilter(FilterOptions options)
+    public DetailFilter(DetailOptions options)
     {
         _options = options;
     }

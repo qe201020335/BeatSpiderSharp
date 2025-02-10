@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using BeatSpiderSharp.Core.Models.Preset;
 using BeatSpiderSharp.Core.Models.Preset.Enums;
+using BeatSpiderSharp.Core.Models.Preset.FilterOptions;
 using Newtonsoft.Json;
 using Serilog;
 using BeatSpiderSharp.Core.Utilities.Extensions;
@@ -104,7 +105,7 @@ public static class LegacyPresetLoader
                           $"重制版项目地址：https://github.com/qe201020335/BeatSpiderSharp",
             Input = input,
             Output = output,
-            DetailFilters = [options]
+            FilterOptions = [new FilterConfig { DetailFilter = options }]
         };
 
 #if DEBUG
@@ -201,7 +202,7 @@ public static class LegacyPresetLoader
         }
     }
 
-    private static void CombineRange<T>(FilterOptions.RangeOption<T> o, LegacyPreset.IMinMaxSetting<T> s) where T : struct, IComparable<T>
+    private static void CombineRange<T>(RangeOption<T> o, LegacyPreset.IMinMaxSetting<T> s) where T : struct, IComparable<T>
     {
         var min = s.Min;
         var max = s.Max;
@@ -220,7 +221,7 @@ public static class LegacyPresetLoader
         o.Max = max;
     }
 
-    private static void MergeBeatSaverSetting(FilterOptions options, LegacyPreset.BeatSaverSetting setting)
+    private static void MergeBeatSaverSetting(DetailOptions options, LegacyPreset.BeatSaverSetting setting)
     {
         Log.Debug("Merging BeatSaver source settings into filter options");
         if (!string.IsNullOrWhiteSpace(setting.SearchKeyword) || setting.StartPage.HasValue)
@@ -294,7 +295,7 @@ public static class LegacyPresetLoader
         }
     }
 
-    private static void MergeScoreSaverSetting(FilterOptions options, LegacyPreset.ScoreSaberSetting setting)
+    private static void MergeScoreSaverSetting(DetailOptions options, LegacyPreset.ScoreSaberSetting setting)
     {
         Log.Debug("Merging ScoreSaber source setting into filter options");
         options.ScoreSaberRanking.Enable = true;
@@ -302,7 +303,7 @@ public static class LegacyPresetLoader
         CombineRange(options.ScoreSaberStars, setting.StarDifficulty);
     }
 
-    private static void MergeMapperSetting(FilterOptions options, LegacyPreset.MapperSetting setting)
+    private static void MergeMapperSetting(DetailOptions options, LegacyPreset.MapperSetting setting)
     {
         var url = setting.MapperAddress;
         Log.Debug("Extracting uploader id from mapper url: {Url}", url);
@@ -323,9 +324,9 @@ public static class LegacyPresetLoader
         }
     }
 
-    private static FilterOptions ConvertFilterOptions(LegacyPreset.SongFilterSetting setting)
+    private static DetailOptions ConvertFilterOptions(LegacyPreset.SongFilterSetting setting)
     {
-        return new FilterOptions
+        return new DetailOptions
         {
             UploaderId = new(int.TryParse(setting.UploaderId.Content, out var id) ? id : null)
             {
