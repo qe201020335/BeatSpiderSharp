@@ -99,15 +99,15 @@ public class PlaylistExporter
         RichTextOptions options = new(font)
         {
             Origin = new PointF(image.Width / 2f, image.Height / 2f),
+            WordBreaking = WordBreaking.Standard,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
 
         // Scale font to fit image
-        var rect = TextMeasurer.MeasureSize(name, options);
-        var scalingFactor = image.Width * 0.8f / rect.Width;
-        var scaledFont = new Font(font, scalingFactor * font.Size);
-        options.Font = scaledFont;
+        Log.Debug("Scaling font to fit image");
+        ScaleFont(name, image, options);
+        Log.Debug("Scaled font size: {Size}", options.Font.Size);
 
         // Draw text
         image.Mutate(ctx =>
@@ -123,5 +123,56 @@ public class PlaylistExporter
         var buffer = new MemoryStream();
         image.SaveAsJpeg(buffer, encoder);
         return buffer;
+    }
+
+    // might be a bit overkill to find multiple sizes, but it works great
+    private static void ScaleFont(string text, Image image, RichTextOptions options)
+    {
+        var minSize = (float) Math.Sqrt(image.Width * image.Height) * 0.1f; // smallest font size before it is too small to read
+        var maxSize = (float) Math.Sqrt(image.Width * image.Height) * 0.25f; // too large it looks bad
+        Log.Debug("Min size: {Min}, Max size: {Max}", minSize, maxSize);
+        float newSize;
+        
+        // find the smallest relative size that fits the text in one line without word wrapping
+        for (var rel = 0.8f; rel <= 0.95; rel += 0.01f)
+        {
+            newSize = GetFontSize(rel, image, text, options, false);
+            if (newSize >= minSize)
+            {
+                // text size is ok for one line
+                Log.Debug("rel: {Size}", rel);
+                newSize = Math.Min(newSize, maxSize);
+                options.Font = new Font(options.Font, newSize);
+                return;
+            }
+        }
+        
+        // one line doesn't fit, find a relative size that fits with word wrapping
+        for (var rel = 0.85f; rel <= 0.97; rel += 0.01f)
+        {
+            newSize = GetFontSize(rel, image, text, options, true);
+            if (newSize >= minSize)
+            {
+                // text size is ok with word wrapping
+                Log.Debug("rel: {Size}", rel);
+                newSize = Math.Min(newSize, maxSize);
+                options.Font = new Font(options.Font, newSize);
+                return;
+            }
+        }
+        
+        // text is still too large
+        // nothing more to do, just need to make it fit
+        newSize = GetFontSize(0.98f, image, text, options, true);
+        options.Font = new Font(options.Font, newSize);
+        Log.Warning("Text is too long, might be too small to read");
+    }
+
+    private static float GetFontSize(float relativeSize, Image image, string text, RichTextOptions options, bool wrap)
+    {
+        options.WrappingLength = wrap ? image.Width * relativeSize : -1;
+        var rect = TextMeasurer.MeasureSize(text, options);
+        var scalingFactor = Math.Min(image.Width * relativeSize / rect.Width, image.Height * relativeSize / rect.Height);
+        return scalingFactor * options.Font.Size;
     }
 }
