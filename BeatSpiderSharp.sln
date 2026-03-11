@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSpiderSharp.Extensions"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{C43F29B2-ADF8-4232-9254-DDF6550B2B7D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonTest", "JsonTest\JsonTest.csproj", "{F0FEC4F3-C129-4884-B2C8-CDBB53C072B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{D8D21C9D-E22B-40A2-9EAB-C89BBED4A299}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8D21C9D-E22B-40A2-9EAB-C89BBED4A299}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8D21C9D-E22B-40A2-9EAB-C89BBED4A299}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0FEC4F3-C129-4884-B2C8-CDBB53C072B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0FEC4F3-C129-4884-B2C8-CDBB53C072B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0FEC4F3-C129-4884-B2C8-CDBB53C072B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0FEC4F3-C129-4884-B2C8-CDBB53C072B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
