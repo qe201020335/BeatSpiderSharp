@@ -1,16 +1,20 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace BeatSpiderSharp.Models.BeatSaver;
 
+#if DEBUG
+// Mirrors the old Newtonsoft MissingMemberHandling.Error: a new BeatSaver field throws in Debug, is ignored in Release.
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+#endif
 public record SongVersion
 {
-    [JsonProperty("hash")]
+    [JsonPropertyName("hash")]
     public string? Hash { get; init; }
 
-    [JsonProperty("state")]
+    [JsonPropertyName("state")]
     public string? State { get; init; }
 
-    [JsonProperty("createdAt")]
+    [JsonPropertyName("createdAt")]
     public DateTimeOffset? CreatedAt { get; init; }
 
     /**
@@ -18,21 +22,30 @@ public record SongVersion
      * Higher is less likely.
      * BeatSage maps are usually negative
      */
-    [JsonProperty("sageScore")]
+    [JsonPropertyName("sageScore")]
     public int? SageScore { get; init; }
 
-    [JsonProperty("diffs")]
-    public List<Diff> Diffs { get; init; } = [];
+    // System.Text.Json does not keep a property initializer when the JSON omits the property, and it assigns
+    // null for an explicit null - Newtonsoft reused the existing instance in both cases. BeatSaver omits these
+    // for most maps, so coerce to empty here rather than making every consumer null-check.
+    private readonly List<Diff> _diffs = [];
 
-    [JsonProperty("downloadURL")]
+    [JsonPropertyName("diffs")]
+    public List<Diff> Diffs
+    {
+        get => _diffs;
+        init => _diffs = value ?? [];
+    }
+
+    [JsonPropertyName("downloadURL")]
     public string? DownloadURL { get; init; }
 
-    [JsonProperty("coverURL")]
+    [JsonPropertyName("coverURL")]
     public string? CoverURL { get; init; }
 
-    [JsonProperty("previewURL")]
+    [JsonPropertyName("previewURL")]
     public string? PreviewURL { get; init; }
 
-    [JsonProperty("key")]
+    [JsonPropertyName("key")]
     public string? Key { get; init; }
 }

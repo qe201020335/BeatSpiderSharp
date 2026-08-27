@@ -1,40 +1,45 @@
 ﻿using BeatSpiderSharp.Models.Enums;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace BeatSpiderSharp.Models.BeatSaver;
 
+#if DEBUG
+// Mirrors the old Newtonsoft MissingMemberHandling.Error: a new BeatSaver field throws in Debug, is ignored in Release.
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+#endif
 public record Song
 {
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string? Id { get; init; }
 
-    [JsonProperty("name")]
+    [JsonPropertyName("name")]
     public string? Name { get; init; }
 
-    [JsonProperty("description")]
+    [JsonPropertyName("description")]
     public string? Description { get; init; }
 
-    [JsonProperty("uploader")]
+    [JsonPropertyName("uploader")]
     public User? Uploader { get; init; }
 
-    [JsonProperty("metadata")]
+    [JsonPropertyName("metadata")]
     public Metadata? Metadata { get; init; }
 
-    [JsonProperty("stats")]
+    [JsonPropertyName("stats")]
     public Stats? Stats { get; init; }
 
-    [JsonProperty("uploaded")]
+    [JsonPropertyName("uploaded")]
     public DateTimeOffset? Uploaded { get; init; }
 
-    [JsonProperty("automapper")]
+    [JsonPropertyName("automapper")]
     public bool Automapper { get; init; }
 
-    [JsonProperty("ranked")]
+    [JsonPropertyName("ranked")]
     public bool Ranked { get; init; }
 
-    [JsonProperty("qualified")]
+    [JsonPropertyName("qualified")]
     public bool Qualified { get; init; }
 
+    [JsonIgnore]
     public RankingStatus RankingStatus
     {
         get
@@ -45,38 +50,55 @@ public record Song
         }
     }
 
-    [JsonProperty("versions")]
-    public List<SongVersion> Versions { get; init; } = [];
+    // System.Text.Json does not keep a property initializer when the JSON omits the property, and it assigns
+    // null for an explicit null - Newtonsoft reused the existing instance in both cases. BeatSaver omits these
+    // for most maps, so coerce to empty here rather than making every consumer null-check.
+    private readonly List<SongVersion> _versions = [];
 
+    [JsonPropertyName("versions")]
+    public List<SongVersion> Versions
+    {
+        get => _versions;
+        init => _versions = value ?? [];
+    }
+
+    [JsonIgnore]
     public SongVersion LatestVersion => Versions.First();
 
-    [JsonProperty("curator")]
+    [JsonPropertyName("curator")]
     public User? Curator { get; init; }
 
-    [JsonProperty("curatedAt")]
+    [JsonPropertyName("curatedAt")]
     public DateTimeOffset? CuratedAt { get; init; }
 
-    [JsonProperty("createdAt")]
+    [JsonPropertyName("createdAt")]
     public DateTimeOffset? CreatedAt { get; init; }
 
-    [JsonProperty("updatedAt")]
+    [JsonPropertyName("updatedAt")]
     public DateTimeOffset? UpdatedAt { get; init; }
 
-    [JsonProperty("lastPublishedAt")]
+    [JsonPropertyName("lastPublishedAt")]
     public DateTimeOffset? LastPublishedAt { get; init; }
 
-    [JsonProperty("tags")]
-    public List<string> Tags { get; init; } = [];
+    private readonly List<string> _tags = [];
 
-    [JsonProperty("declaredAi")]
+    [JsonPropertyName("tags")]
+    public List<string> Tags
+    {
+        get => _tags;
+        init => _tags = value ?? [];
+    }
+
+    [JsonPropertyName("declaredAi")]
     public string? DeclaredAi { get; init; }
 
-    [JsonProperty("blRanked")]
+    [JsonPropertyName("blRanked")]
     public bool BlRanked { get; init; }
 
-    [JsonProperty("blQualified")]
+    [JsonPropertyName("blQualified")]
     public bool BlQualified { get; init; }
 
+    [JsonIgnore]
     public RankingStatus BlRankingStatus
     {
         get
@@ -87,12 +109,18 @@ public record Song
         }
     }
 
-    [JsonProperty("bookmarked")]
+    [JsonPropertyName("bookmarked")]
     public bool Bookmarked { get; init; }
 
-    [JsonProperty("nsfw")]
+    [JsonPropertyName("nsfw")]
     public bool Nsfw { get; init; }
 
-    [JsonProperty("collaborators")]
-    public List<User> Collaborators { get; init; } = [];
+    private readonly List<User> _collaborators = [];
+
+    [JsonPropertyName("collaborators")]
+    public List<User> Collaborators
+    {
+        get => _collaborators;
+        init => _collaborators = value ?? [];
+    }
 }

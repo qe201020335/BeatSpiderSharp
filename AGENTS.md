@@ -75,7 +75,18 @@ dotnet run --project BeatSpiderSharp.CLI -- -i preset.json -s cache.json.gz -z -
    `--use-local-zips`) intentionally default to `null` so "not specified" is distinguishable from "explicitly false".
 3. `VerifyOutput` — output directories must already exist; the tool does not create them.
 4. Stream songs from the cache. `JsonExtensions.DeserializeArrayAsync` walks to the `docs` property and yields
-   `Song` records one at a time as `IAsyncEnumerable`. The cache is far too large to `JObject.Parse`; keep it streaming.
+   `Song` records one at a time as `IAsyncEnumerable`. The cache is far too large to load whole; keep it streaming.
+   A `PipeReader` owns the buffering, and `Utf8JsonReader` consumes its `ReadOnlySequence` directly - no
+   `StreamReader` transcoding every byte to UTF-16, and no hand-rolled buffer growth. Two details are load-bearing:
+   the pipe is created with a 1 MiB segment size (the 4 KiB default splits nearly every song across segments and
+   costs ~40% throughput), and the loop completes the pipe in a `finally` because a count limit routinely
+   abandons the enumeration early.
+   `JsonSerializer.DeserializeAsyncEnumerable` cannot replace this - it requires the array to be the whole payload
+   and rejects the cache's trailing `,"date":N}`.
+   Because `Utf8JsonReader` is a `ref struct` that cannot cross an `await`, parsing sits in a sync method while the
+   async loop carries the position across reads. An element running past the buffered bytes is rewound and
+   re-parsed once more arrive. If you touch that state machine, re-verify it at small chunk sizes: every resume
+   point (mid-element, and between the property name and the `[`) has to be restartable.
 5. Narrow by input source (`SongInputSource.BeatSaver` = everything, or intersect with playlists / a manual bsr+hash
    list via `SongSourceFactory`, which is `IDisposable` because it lazily opens an `HttpClient`). An entry in
    `InputConfig.Playlists` is either a local path — `.json`/`.bplist` or `.blist`, by extension — or an `http(s)` URL,
@@ -124,14 +135,26 @@ These rules are easy to get backwards; check them before touching filter code.
 - **Formatting**: `.editorconfig` is authoritative — 4 spaces, CRLF, 120-column limit, `var` preferred everywhere,
   private instance/static fields prefixed `_`, private static readonly and constants in `PascalCase` except
   non-private `const` which is `ALL_UPPER`. ReSharper/Rider settings are checked in and enforce these as warnings.
-- **JSON**: Newtonsoft.Json throughout, never `System.Text.Json`. Models use `[JsonProperty("camelCase")]`.
-  Preset serialization goes through `PresetLoader`'s configured serializer (indented, UTC dates, string enums).
+- **JSON**: split by path, and the split is deliberate.
+  - The **song cache** (`BeatSaver/*` models) uses `System.Text.Json` with the source generator -
+    `[JsonPropertyName("camelCase")]`, registered in `BeatSaverJsonContext`. Add a new model type to that context
+    or it falls back to reflection. These models are deserialize-only; nothing writes them.
+    **A collection property must coerce null in its `init` accessor** (see `Song.Tags`) - System.Text.Json drops
+    the property initializer both when the field is absent and when it is an explicit `null`, where Newtonsoft
+    reused the existing instance. BeatSaver omits `tags`, `collaborators` and `diffs` on most maps, so a plain
+    `public List<T> X { get; init; } = [];` silently yields `null` for ~half the cache and blows up in the
+    filters. `= []` on its own is not enough.
+  - **Everything else** - presets, legacy presets, playlists - stays on Newtonsoft.Json with
+    `[JsonProperty("camelCase")]`. Preset serialization goes through `PresetLoader`'s configured serializer
+    (indented, UTC dates, string enums). Do not migrate these without a reason; they are cold paths.
 - **Logging**: Serilog static `Log.X` with structured message templates (`Log.Information("Loading {Path}", path)`).
   Never interpolate into the template. `Log.Verbose` is the level for per-song filter exclusion reasons.
-- **DEBUG-only behavior**: several `#if DEBUG` blocks change semantics, notably
-  `MissingMemberHandling = MissingMemberHandling.Error` on the song-cache and legacy-preset deserializers. A new
-  BeatSaver API field will therefore throw in Debug builds but be silently ignored in Release. Adding a field to
-  the `BeatSaver/*` models is the fix.
+- **DEBUG-only behavior**: several `#if DEBUG` blocks change semantics. A new BeatSaver API field throws in Debug
+  builds but is silently ignored in Release; adding a field to the `BeatSaver/*` models is the fix. The mechanism
+  differs by library: the `BeatSaver/*` records each carry a `#if DEBUG`-guarded
+  `[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]` (System.Text.Json applies this per type, not
+  as a global setting - a new model type without the attribute silently loses the check), while the legacy-preset
+  deserializer still uses Newtonsoft's global `MissingMemberHandling = MissingMemberHandling.Error`.
 - **Filename templates**: `Templates` (new, `{{Bsr}}`) and `LegacyTemplates` (old). `FileUtils.SanitizeFileName`
   strips Windows-invalid characters on every platform so output is portable.
 - **Paths**: compare with `FileUtils.PathComparer` (case-insensitive on Windows/macOS), not `StringComparer.Ordinal`.

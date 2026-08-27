@@ -1,75 +1,79 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace BeatSpiderSharp.Models.BeatSaver;
 
+#if DEBUG
+// Mirrors the old Newtonsoft MissingMemberHandling.Error: a new BeatSaver field throws in Debug, is ignored in Release.
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+#endif
 public record Diff
 {
-    [JsonProperty("njs")]
+    [JsonPropertyName("njs")]
     public float? Njs { get; init; }
 
-    [JsonProperty("offset")]
+    [JsonPropertyName("offset")]
     public float? Offset { get; init; }
 
-    [JsonProperty("notes")]
+    [JsonPropertyName("notes")]
     public int? Notes { get; init; }
 
-    [JsonProperty("bombs")]
+    [JsonPropertyName("bombs")]
     public int? Bombs { get; init; }
 
-    [JsonProperty("obstacles")]
+    [JsonPropertyName("obstacles")]
     public int? Obstacles { get; init; }
 
-    [JsonProperty("nps")]
+    [JsonPropertyName("nps")]
     public float? Nps { get; init; }
 
     /**
      * The length of the map in beats.
      */
-    [JsonProperty("length")]
+    [JsonPropertyName("length")]
     public float? Length { get; init; }
 
-    [JsonProperty("characteristic")]
+    [JsonPropertyName("characteristic")]
     public string? Characteristic { get; init; }
 
-    [JsonProperty("difficulty")]
+    [JsonPropertyName("difficulty")]
     public string? Difficulty { get; init; }
 
-    [JsonProperty("events")]
+    [JsonPropertyName("events")]
     public int? Events { get; init; }
 
-    [JsonProperty("chroma")]
+    [JsonPropertyName("chroma")]
     public bool Chroma { get; init; }
 
-    [JsonProperty("me")]
+    [JsonPropertyName("me")]
     public bool Me { get; init; }
 
-    [JsonProperty("ne")]
+    [JsonPropertyName("ne")]
     public bool Ne { get; init; }
 
-    [JsonProperty("cinema")]
+    [JsonPropertyName("cinema")]
     public bool Cinema { get; init; }
 
-    [JsonProperty("seconds")]
+    [JsonPropertyName("seconds")]
     public float? Seconds { get; init; }
 
-    [JsonProperty("paritySummary")]
+    [JsonPropertyName("paritySummary")]
     public ParitySummary? ParitySummary { get; init; }
 
-    [JsonProperty("stars")]
+    [JsonPropertyName("stars")]
     public float? Stars { get; init; }
 
-    [JsonProperty("maxScore")]
+    [JsonPropertyName("maxScore")]
     public int? MaxScore { get; init; }
 
-    [JsonProperty("label")]
+    [JsonPropertyName("label")]
     public string? Label { get; init; }
 
-    [JsonProperty("blStars")]
+    [JsonPropertyName("blStars")]
     public float? BlStars { get; init; }
 
-    [JsonProperty("environment")]
+    [JsonPropertyName("environment")]
     public string? Environment { get; init; }
 
-    [JsonProperty("vivify")]
+    [JsonPropertyName("vivify")]
     public bool Vivify { get; init; }
 }

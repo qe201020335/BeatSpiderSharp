@@ -1,29 +1,35 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace BeatSpiderSharp.Models.BeatSaver;
 
+#if DEBUG
+// Mirrors the old Newtonsoft MissingMemberHandling.Error: a new BeatSaver field throws in Debug, is ignored in Release.
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+#endif
 public record Stats
 {
-    [JsonProperty("plays")]
+    // Nothing reads these two, but they stay mapped so the DEBUG unmapped-member check does not trip on the
+    // cached data, which still carries them.
+    [JsonPropertyName("plays")]
     [Obsolete("BeatSaver does not keep track of it")]
     public int? Plays { get; init; }
 
-    [JsonProperty("downloads")]
+    [JsonPropertyName("downloads")]
     [Obsolete("BeatSaver does not keep track of it.")]
     public int? Downloads { get; init; }
 
-    [JsonProperty("upvotes")]
+    [JsonPropertyName("upvotes")]
     public int? Upvotes { get; init; }
 
-    [JsonProperty("downvotes")]
+    [JsonPropertyName("downvotes")]
     public int? Downvotes { get; init; }
 
-    [JsonProperty("score")]
+    [JsonPropertyName("score")]
     public float? Score { get; init; }
 
-    [JsonProperty("reviews")]
+    [JsonPropertyName("reviews")]
     public int? Reviews { get; init; }
 
-    [JsonProperty("sentiment")]
+    [JsonPropertyName("sentiment")]
     public string? Sentiment { get; init; }
 }

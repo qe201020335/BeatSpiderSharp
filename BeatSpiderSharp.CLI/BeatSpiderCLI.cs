@@ -9,7 +9,6 @@ using BeatSpiderSharp.Models.BeatSaver;
 using BeatSpiderSharp.Models.Enums;
 using BeatSpiderSharp.Models.Preset;
 using BeatSpiderSharp.Shared;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace BeatSpiderSharp.CLI;
@@ -137,25 +136,17 @@ public class BeatSpiderCLI(bool verbose) : BeatSpider(verbose)
         }
 
         Log.Information("Loading songs from cached data");
-        Stream songDataStream = File.OpenRead(options.SongCachePath);
-        if (options.GZipCacheData)
-        {
-            songDataStream = new GZipStream(songDataStream, CompressionMode.Decompress);
-        }
-
-        await using var jsonReader = new JsonTextReader(new StreamReader(songDataStream));
-        var serializer = JsonSerializer.Create(new JsonSerializerSettings
-        {
-#if DEBUG
-            MissingMemberHandling = MissingMemberHandling.Error
-#endif
-        });
+        var cacheFileStream = File.OpenRead(options.SongCachePath);
+        // Disposing the GZipStream disposes the file stream underneath it, so only the outermost needs a handle.
+        await using Stream songDataStream = options.GZipCacheData
+            ? new GZipStream(cacheFileStream, CompressionMode.Decompress)
+            : cacheFileStream;
 
         Log.Information("Loading song inputs");
-        var allSongs = serializer
-            .DeserializeArrayAsync<Song>(jsonReader, ["docs"], cToken)
+        var allSongs = JsonExtensions
+            .DeserializeArrayAsync(songDataStream, BeatSaverJsonContext.Default.Song, ["docs"], cToken)
             .Where(BeatSpiderSong.ValidateBeatSaverSong)
-            .Select(song => BeatSpiderSong.FromBeatSaverSong(song!));
+            .Select(BeatSpiderSong.FromBeatSaverSong);
 
         using var songSourceFactory = new SongSourceFactory();
         try

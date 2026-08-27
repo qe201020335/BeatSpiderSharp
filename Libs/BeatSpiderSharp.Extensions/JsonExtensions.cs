@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json.Serialization.Metadata;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -31,44 +32,55 @@ public static class JsonExtensions
         serializer.Serialize(jsonWriter, value);
     }
 
-    public static async IAsyncEnumerable<T?> DeserializeArrayAsync<T>(this JsonSerializer serializer,
-        JsonTextReader reader, string[] path, [EnumeratorCancellation] CancellationToken ct = default)
+    /// <summary>
+    ///     Walks <paramref name="path" /> (e.g. <c>["docs"]</c>) to an array property and yields its elements one at a
+    ///     time. <c>JsonSerializer.DeserializeAsyncEnumerable</c> cannot do this - it requires the array to be the
+    ///     entire payload.
+    /// </summary>
+    public static async IAsyncEnumerable<T> DeserializeArrayAsync<T>(Stream stream, JsonTypeInfo<T> typeInfo,
+        string[] path, [EnumeratorCancellation] CancellationToken ct = default)
     {
+        await using var reader = new Utf8JsonStreamReader(stream);
+
         // Find the property
         foreach (var fieldName in path)
         {
             if (!await TryAdvanceToPropertyAsync(reader, fieldName, ct))
             {
-                throw new JsonSerializationException("Could not find array property");
+                throw new System.Text.Json.JsonException("Could not find array property");
             }
         }
 
-        if (reader.TokenType != JsonToken.StartArray)
+        if (reader.TokenType != System.Text.Json.JsonTokenType.StartArray)
         {
-            throw new JsonSerializationException("Property is not an array", reader.Path, reader.LineNumber,
-                reader.LinePosition, null);
+            throw new System.Text.Json.JsonException($"Property '{path[^1]}' is not an array");
         }
 
         while (await reader.ReadAsync(ct))
         {
-            if (reader.TokenType == JsonToken.EndArray) yield break;
+            if (reader.TokenType == System.Text.Json.JsonTokenType.EndArray) yield break;
 
-            var item = serializer.Deserialize<T>(reader);
+            var item = await reader.DeserializeAsync(typeInfo, ct);
             if (item != null) yield return item;
         }
     }
 
-    private static async Task<bool> TryAdvanceToPropertyAsync(JsonReader reader, string propertyName,
+    private static async ValueTask<bool> TryAdvanceToPropertyAsync(Utf8JsonStreamReader reader, string propertyName,
         CancellationToken ct)
     {
         // Find the property
         while (await reader.ReadAsync(ct))
         {
-            if (reader.TokenType == JsonToken.PropertyName && reader.Value as string == propertyName)
+            if (reader.TokenType != System.Text.Json.JsonTokenType.PropertyName) continue;
+
+            if (reader.ValueTextEquals(propertyName))
             {
                 await reader.ReadAsync(ct);
                 return true;
             }
+
+            // Step over the value wholesale, so a nested property of the same name is not mistaken for the target.
+            await reader.SkipAsync(ct);
         }
 
         return false;
