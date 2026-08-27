@@ -1,5 +1,6 @@
 ﻿using BeatSpiderSharp.Core.Filters;
 using BeatSpiderSharp.Core.Utilities;
+using BeatSpiderSharp.Extensions;
 using BeatSpiderSharp.Models;
 using BeatSpiderSharp.Models.Enums;
 using BeatSpiderSharp.Models.Preset;
@@ -56,44 +57,52 @@ public abstract class BeatSpider : IDisposable
         CancellationToken cToken)
     {
         var output = preset.Output;
-        if (output.SortType == SortType.Rating)
+
+        var sortByRating = output.SortType == SortType.Rating;
+        var limit = output is { LimitSongs: true, MaxSongs: > 0 } ? output.MaxSongs.Value : (int?)null;
+
+        BeatSpiderSong[] consolidated;
+        if (sortByRating && limit.HasValue)
         {
-            Log.Information("Sorting songs by rating");
-            songs = songs.OrderByDescending(song => song.BeatSaverSong.Stats?.Score);
+            Log.Information("Selecting top {Count} songs by rating", limit.Value);
+            consolidated = await songs.TakeTopByAsync(limit.Value, song => song.BeatSaverSong.Stats?.Score, ct: cToken);
         }
-        
-        if (output.LimitSongs && output.MaxSongs.HasValue && output.MaxSongs.Value > 0)
+        else
         {
-            Log.Information("Applying count limit: {Count}", output.MaxSongs.Value);
-            songs = songs.Take(output.MaxSongs.Value);
+            if (sortByRating)
+            {
+                Log.Information("Sorting songs by rating");
+                songs = songs.OrderByDescending(song => song.BeatSaverSong.Stats?.Score);
+            }
+
+            if (limit.HasValue)
+            {
+                Log.Information("Applying count limit: {Count}", limit.Value);
+                songs = songs.Take(limit.Value);
+            }
+
+            consolidated = await songs.ToArrayAsync(cToken);
         }
 
         if (Verbose)
         {
-            if (output.SortType == SortType.Rating)
+            foreach (var song in consolidated)
             {
-                songs = songs.Select(song =>
+                if (sortByRating)
                 {
                     Log.Verbose("Song {Bsr} ({Title} - {Mapper}) included at {Rating:P} rating",
                         song.Bsr,
                         song.BeatSaverSong.Metadata?.SongName,
                         song.BeatSaverSong.Uploader?.Name, song.BeatSaverSong.Stats?.Score);
-                    return song;
-                });
-            }
-            else
-            {
-                songs = songs.Select(song =>
+                }
+                else
                 {
                     Log.Verbose("Song {Bsr} ({Title} - {Mapper}) included", song.Bsr,
                         song.BeatSaverSong.Metadata?.SongName,
                         song.BeatSaverSong.Uploader?.Name);
-                    return song;
-                });
+                }
             }
         }
-
-        var consolidated = await songs.ToArrayAsync(cToken);
 
         if (output.Playlist.SavePlaylist)
         {

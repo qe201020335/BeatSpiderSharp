@@ -21,6 +21,9 @@ Two executables:
   into a single JSON file: a `docs` array followed by a `date` unix-seconds timestamp. Optionally GZipped. It shares
   nothing with the CLI but `BeatSpiderSharp.Shared`; in particular it does not depend on Core or Models. Its
   user-facing strings are in Chinese.
+  **The `docs` array is guaranteed to be ordered newest upload first** — the CLI relies on this, see
+  `SortType.Latest` below. `ConcurrentRequests` fetches several pages at once but the results are drained from the
+  task list in page order, so the output order stays deterministic; keep it that way when touching that loop.
 - **`BeatSpiderSharp.CLI`** — reads that cache file, applies a preset's filters, and exports a playlist and/or
   downloads the matching songs. Its user-facing strings are in English.
 
@@ -79,8 +82,17 @@ dotnet run --project BeatSpiderSharp.CLI -- -i preset.json -s cache.json.gz -z -
    which is downloaded and always parsed as bplist. A playlist that fails to load aborts the run rather than being
    skipped; `RunAsync` catches it and returns exit code 1.
 6. Filter (see below).
-7. `OutputSongsAsync` — optional rating sort, optional count limit, then materialize to an array and hand it to
+7. `OutputSongsAsync` — optional sort, optional count limit, then materialize to an array and hand it to
    `PlaylistExporter` and/or `SongDownloader`.
+   `SortType.Latest` deliberately sorts nothing: the cache is already newest-upload first, so cache order *is*
+   latest order. Only `SortType.Rating` reorders.
+   Sorting and limiting together goes through `TakeTopAsync`, a bounded heap, rather than
+   `OrderByDescending(...).Take(n)`. It returns the same songs in the same order - LINQ's sort is stable, so the
+   heap key carries the source index to break ties the same way. The reason is not the sort itself, which costs a
+   few milliseconds on 122k songs either way: `OrderByDescending` has to buffer the whole source before yielding,
+   which keeps every parsed song alive at once and promotes them out of gen0 (417 MB peak and ~0.8s of GC, versus
+   55 MB and free). Any full-buffering operator added to this pipeline - a sort, `Distinct`, `GroupBy` - pays the
+   same cost.
 
 ## Filter semantics
 
